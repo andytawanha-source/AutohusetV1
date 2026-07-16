@@ -1,7 +1,9 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
+import { captureAttribution } from "@/lib/attribution";
+import { track } from "@/features/tracking/track";
 import { BrandProvider } from "./BrandProvider";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { PageFallback } from "@/components/shared/PageFallback";
@@ -21,6 +23,19 @@ const CookieSettingsPage = lazy(() => import("@/pages/legal/CookieSettingsPage")
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const AdminRoutes = lazy(() => import("@/admin/AdminRoutes"));
 
+/** Attribution (first touch), page_view-tracking og scroll-til-top ved rutenavigation. */
+function RouteEffects() {
+  const location = useLocation();
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+  useEffect(() => {
+    track("page_view", { path: location.pathname });
+    window.scrollTo({ top: 0 });
+  }, [location.pathname]);
+  return null;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 60_000, retry: 1 },
@@ -33,6 +48,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <BrandProvider>
           <BrowserRouter>
+            <RouteEffects />
             <Suspense fallback={<PageFallback />}>
               <Routes>
                 <Route element={<PublicLayout />}>

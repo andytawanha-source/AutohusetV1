@@ -1,16 +1,234 @@
+import { Link } from "react-router-dom";
+import { ArrowRight, BadgeCheck, Banknote, Clock, HandCoins, MapPin, ShieldCheck, Wrench } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
+import { HeroSection } from "@/components/home/HeroSection";
+import { AnimatedCounter } from "@/components/home/AnimatedCounter";
+import { FaqAccordion } from "@/components/home/FaqAccordion";
+import { VehicleGrid, VehicleGridSkeleton } from "@/components/vehicles/VehicleGrid";
+import { useInventory } from "@/features/vehicles/api";
 
-/** Udbygges i Fase 2 med hero-toggle, søgning, sektioner m.m. */
+const PROCESS_STEPS = [
+  { title: "Indtast nummerplade", text: "Skriv din nummerplade og kilometerstand – vi henter bilens oplysninger automatisk." },
+  { title: "Beskriv bilens stand", text: "Svar på et par korte spørgsmål og upload billeder af bilen." },
+  { title: "Modtag dit tilbud", text: "Vi vurderer din bil og kontakter dig med et uforpligtende tilbud." },
+  { title: "Handl trygt", text: "Accepterer du tilbuddet, klarer vi papirarbejdet og betaler med det samme." },
+];
+
+const FAQ_ITEMS = [
+  { question: "Hvordan foregår en bilvurdering?", answer: "Du indtaster din nummerplade og kilometerstand, bekræfter bilens oplysninger og fortæller os om dens stand. Herefter kontakter vi dig med et uforpligtende tilbud." },
+  { question: "Er tilbuddet bindende?", answer: "Nej, vores tilbud er helt uforpligtende. Du bestemmer selv, om du vil acceptere." },
+  { question: "Kan I hjælpe med finansiering?", answer: "Ja, vi samarbejder med finansieringspartnere og finder en løsning, der passer til dig." },
+  { question: "Kan jeg bytte min nuværende bil?", answer: "Ja, vi tager gerne din nuværende bil i bytte. Nævn det blot i din henvendelse." },
+];
+
 export default function HomePage() {
   const brand = useBrand();
+  const inventory = useInventory();
+  const available = (inventory.data ?? []).filter((v) => v.status === "published" || v.status === "reserved");
+  const latest = available.slice(0, 3);
+  const featured = available.filter((v) => v.isFeatured).slice(0, 3);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "AutoDealer",
+    name: brand.name,
+    telephone: brand.contact.phone,
+    email: brand.contact.email,
+    address: { "@type": "PostalAddress", streetAddress: brand.contact.address },
+  };
+
   return (
-    <div className="container py-16">
-      <Seo />
-      <h1 className="font-display text-4xl font-bold text-brand-primary">{brand.name}</h1>
-      <p className="mt-4 max-w-xl text-lg text-brand-ink/70">
-        Fundamentet er på plads. Forsiden bygges færdig i Fase 2 med hero, søgning og alle sektioner.
-      </p>
-    </div>
+    <>
+      <Seo jsonLd={jsonLd} />
+      <HeroSection />
+
+      {/* Nøgletal */}
+      <section className="border-b border-brand-ink/5 bg-white py-8" aria-label="Nøgletal">
+        <div className="container grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="font-display text-3xl font-bold text-brand-primary">
+              <AnimatedCounter value={available.length} />
+            </p>
+            <p className="mt-1 text-sm text-brand-ink/60">biler på lager</p>
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold text-brand-primary">[ÅRS ERFARING]</p>
+            <p className="mt-1 text-sm text-brand-ink/60">års erfaring</p>
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold text-brand-primary">[ANTAL KUNDER]</p>
+            <p className="mt-1 text-sm text-brand-ink/60">tilfredse kunder</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Nyeste biler */}
+      <section className="py-14" aria-labelledby="latest-heading">
+        <div className="container">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <h2 id="latest-heading" className="font-display text-2xl font-bold text-brand-primary lg:text-3xl">Nyeste biler</h2>
+            <Link to="/biler" className="inline-flex items-center gap-1.5 font-medium text-brand-primary hover:underline">
+              Se alle biler <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+          {inventory.isLoading ? <VehicleGridSkeleton count={3} /> : <VehicleGrid vehicles={latest} />}
+        </div>
+      </section>
+
+      {/* Fremhævede biler */}
+      {featured.length > 0 && (
+        <section className="bg-brand-surface-warm/40 py-14" aria-labelledby="featured-heading">
+          <div className="container">
+            <h2 id="featured-heading" className="mb-6 font-display text-2xl font-bold text-brand-primary lg:text-3xl">
+              Udvalgt til dig
+            </h2>
+            <VehicleGrid vehicles={featured} />
+          </div>
+        </section>
+      )}
+
+      {/* Sådan sælger du din bil */}
+      <section className="bg-brand-primary py-16 text-white" aria-labelledby="process-heading">
+        <div className="container">
+          <h2 id="process-heading" className="font-display text-2xl font-bold lg:text-3xl">Sådan sælger du din bil</h2>
+          <p className="mt-2 max-w-xl text-white/70">Fra nummerplade til penge på kontoen – uden annoncer, fremvisninger og usikre købere.</p>
+          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PROCESS_STEPS.map((step, i) => (
+              <li key={step.title} className="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
+                <p aria-hidden className="font-display text-3xl font-bold text-brand-accent">{i + 1}</p>
+                <h3 className="mt-2 font-semibold">{step.title}</h3>
+                <p className="mt-1 text-sm text-white/70">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+          <Link to="/saelg-din-bil"
+            className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand-accent px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
+            Start din vurdering <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
+      </section>
+
+      {/* Fordele */}
+      <section className="py-14" aria-labelledby="usp-heading">
+        <div className="container">
+          <h2 id="usp-heading" className="mb-8 font-display text-2xl font-bold text-brand-primary lg:text-3xl">
+            Derfor handler du trygt hos {brand.name}
+          </h2>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: ShieldCheck, title: "Tryg handel", text: "Gennemsigtige priser og ordentlige vilkår – ingen skjulte gebyrer." },
+              { icon: Wrench, title: "Klargjorte biler", text: "Alle biler er gennemgået og klargjort inden levering." },
+              { icon: Banknote, title: "Nem finansiering", text: "Vi finder en finansieringsløsning, der passer til din økonomi." },
+              { icon: Clock, title: "Hurtigt svar", text: `Vi svarer på henvendelser ${brand.leadResponseTime}.` },
+            ].map(({ icon: Icon, title, text }) => (
+              <li key={title} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
+                <Icon className="h-8 w-8 text-brand-accent" aria-hidden />
+                <h3 className="mt-3 font-semibold">{title}</h3>
+                <p className="mt-1 text-sm text-brand-ink/70">{text}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Anmeldelser – tydelige placeholders */}
+      <section className="bg-brand-surface-warm/40 py-14" aria-labelledby="reviews-heading">
+        <div className="container">
+          <h2 id="reviews-heading" className="mb-6 font-display text-2xl font-bold text-brand-primary lg:text-3xl">
+            Det siger vores kunder
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <blockquote key={i} className="rounded-xl border-2 border-dashed border-brand-ink/15 bg-white/60 p-5 text-sm text-brand-ink/50">
+                <p>[PLACEHOLDER – rigtig kundeanmeldelse indsættes efter godkendelse. Dette er ikke en rigtig anmeldelse.]</p>
+                <footer className="mt-3 font-medium">[Kundenavn]</footer>
+              </blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Finansiering */}
+      <section className="py-14" aria-labelledby="finance-heading">
+        <div className="container grid items-center gap-8 lg:grid-cols-2">
+          <div>
+            <h2 id="finance-heading" className="font-display text-2xl font-bold text-brand-primary lg:text-3xl">
+              Finansiering, der passer til dig
+            </h2>
+            <p className="mt-3 leading-relaxed text-brand-ink/70">
+              Vi samarbejder med anerkendte finansieringspartnere og skræddersyr en løsning ud fra din
+              økonomi – ofte med svar samme dag. Tag din nuværende bil med i handlen og brug den som udbetaling.
+            </p>
+            <Link to="/finansiering" className="mt-5 inline-flex items-center gap-2 font-semibold text-brand-primary hover:underline">
+              Læs mere om finansiering <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <p className="mt-4 text-xs text-brand-ink/50">
+              Finansieringseksempler er vejledende og forudsætter kreditgodkendelse. <Link to="/finansieringsforbehold" className="underline">Se forbehold</Link>.
+            </p>
+          </div>
+          <ul className="space-y-3">
+            {[
+              { icon: HandCoins, text: "Lav udbetaling og fleksibel løbetid" },
+              { icon: BadgeCheck, text: "Svar på din ansøgning – ofte samme dag" },
+              { icon: Banknote, text: "Brug din nuværende bil som udbetaling" },
+            ].map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-brand-ink/5">
+                <Icon className="h-6 w-6 shrink-0 text-brand-accent" aria-hidden />
+                <span className="text-sm font-medium">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Om + lokation */}
+      <section className="bg-brand-primary py-14 text-white" aria-labelledby="about-heading">
+        <div className="container grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 id="about-heading" className="font-display text-2xl font-bold lg:text-3xl">Om {brand.name}</h2>
+            <p className="mt-3 leading-relaxed text-white/75">
+              [OM OS-TEKST – leveres af forhandleren. Kort fortælling om historie, værdier og hvorfor kunderne
+              vælger {brand.name}.]
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link to="/om-os" className="rounded-md border border-white/30 px-5 py-2.5 font-medium hover:bg-white/10">
+                Læs mere om os
+              </Link>
+              <Link to="/kontakt" className="rounded-md bg-brand-accent px-5 py-2.5 font-semibold text-brand-primary">
+                Kontakt os
+              </Link>
+            </div>
+          </div>
+          <div className="rounded-xl bg-white/5 p-6 ring-1 ring-white/10">
+            <h3 className="flex items-center gap-2 font-display text-lg font-bold">
+              <MapPin className="h-5 w-5 text-brand-accent" aria-hidden /> Find os
+            </h3>
+            <p className="mt-2 text-white/75">{brand.contact.address}</p>
+            <ul className="mt-4 space-y-1 text-sm text-white/75">
+              {brand.openingHours.map((row) => (
+                <li key={row.label} className="flex justify-between gap-6">
+                  <span>{row.label}</span>
+                  <span>{row.hours}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 rounded-md bg-white/10 p-3 text-xs text-white/60">
+              Kortvisning kræver samtykke til funktionelle cookies og aktiveres via cookieindstillingerne (Fase 5).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-14" aria-labelledby="faq-heading">
+        <div className="container max-w-3xl">
+          <h2 id="faq-heading" className="mb-6 font-display text-2xl font-bold text-brand-primary lg:text-3xl">
+            Ofte stillede spørgsmål
+          </h2>
+          <FaqAccordion items={FAQ_ITEMS} />
+        </div>
+      </section>
+    </>
   );
 }

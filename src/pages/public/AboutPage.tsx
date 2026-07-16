@@ -1,13 +1,52 @@
+import { Link } from "react-router-dom";
+import { MapPin } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 
 export default function AboutPage() {
   const brand = useBrand();
   return (
-    <div className="container py-16">
-      <Seo title="Om os" />
-      <h1 className="font-display text-3xl font-bold text-brand-primary">Om {brand.name}</h1>
-      <p className="mt-4 text-brand-ink/70">Om os-siden bygges i Fase 2.</p>
+    <div className="container py-10 lg:py-14">
+      <Seo title="Om os" description={`Lær ${brand.name} at kende – historie, værdier og team.`} />
+      <div className="max-w-2xl">
+        <h1 className="font-display text-3xl font-bold text-brand-primary lg:text-4xl">Om {brand.name}</h1>
+        <div className="mt-4 space-y-4 leading-relaxed text-brand-ink/75">
+          <p>
+            [OM OS – AFSNIT 1: Forhandlerens historie og baggrund. Leveres af virksomheden og erstattes før lancering.]
+          </p>
+          <p>
+            [OM OS – AFSNIT 2: Værdier, tilgang til bilhandel og hvad kunderne kan forvente.]
+          </p>
+          <p>
+            [OM OS – AFSNIT 3: Team, værksted/klargøring og eventuelle specialer.]
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-brand-ink/5">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-primary">
+            <MapPin className="h-5 w-5 text-brand-accent" aria-hidden /> Her finder du os
+          </h2>
+          <p className="mt-2 text-brand-ink/75">{brand.contact.address}</p>
+          <ul className="mt-4 space-y-1 text-sm text-brand-ink/70">
+            {brand.openingHours.map((row) => (
+              <li key={row.label} className="flex justify-between gap-6">
+                <span>{row.label}</span>
+                <span>{row.hours}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-col justify-center rounded-xl bg-brand-primary p-6 text-white">
+          <h2 className="font-display text-lg font-bold">Skal vi hjælpe dig videre?</h2>
+          <p className="mt-2 text-white/75">Find din næste bil, eller få et uforpligtende tilbud på din nuværende.</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link to="/biler" className="rounded-md border border-white/30 px-5 py-2.5 font-medium hover:bg-white/10">Se biler til salg</Link>
+            <Link to="/saelg-din-bil" className="rounded-md bg-brand-accent px-5 py-2.5 font-semibold text-brand-primary">Sælg din bil</Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
