@@ -1,24 +1,58 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { Seo } from "@/components/seo/Seo";
+import { PageFallback } from "@/components/shared/PageFallback";
+import { AdminAuthProvider, RequireAuth } from "./auth";
+import { AdminLayout } from "./components/AdminLayout";
 
-/** Adminpanelet bygges i Fase 4. Ruterne er reserveret og noindex'et fra start. */
+const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
+const AdminVehiclesPage = lazy(() => import("./pages/AdminVehiclesPage"));
+const AdminVehicleFormPage = lazy(() => import("./pages/AdminVehicleFormPage"));
+const AdminLeadsPage = lazy(() => import("./pages/AdminLeadsPage"));
+const AdminLeadDetailPage = lazy(() => import("./pages/AdminLeadDetailPage"));
+const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
+const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
+
+/** Adminpanel – altid noindex. Rettigheder håndhæves autoritativt af RLS i databasen. */
 export default function AdminRoutes() {
   return (
-    <>
+    <AdminAuthProvider>
       <Seo title="Admin" index={false} />
-      <Routes>
-        <Route
-          path="*"
-          element={
-            <div className="flex min-h-screen items-center justify-center bg-brand-surface p-8 text-center">
-              <div>
-                <h1 className="font-display text-2xl font-bold text-brand-primary">Adminpanel</h1>
-                <p className="mt-2 text-brand-ink/70">Bygges i Fase 4 (bil-CRUD, lead-CRM, roller og indstillinger).</p>
-              </div>
-            </div>
-          }
-        />
-      </Routes>
-    </>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="login" element={<AdminLoginPage />} />
+          <Route
+            element={
+              <RequireAuth>
+                <AdminLayout />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="biler" element={<AdminVehiclesPage />} />
+            <Route path="biler/:id" element={<AdminVehicleFormPage />} />
+            <Route path="leads" element={<AdminLeadsPage />} />
+            <Route path="leads/:id" element={<AdminLeadDetailPage />} />
+            <Route
+              path="indstillinger"
+              element={
+                <RequireAuth roles={["dealer_admin"]}>
+                  <AdminSettingsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="brugere"
+              element={
+                <RequireAuth roles={["dealer_admin"]}>
+                  <AdminUsersPage />
+                </RequireAuth>
+              }
+            />
+          </Route>
+        </Routes>
+      </Suspense>
+    </AdminAuthProvider>
   );
 }
