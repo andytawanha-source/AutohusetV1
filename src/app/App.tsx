@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { captureAttribution } from "@/lib/attribution";
 import { track } from "@/features/tracking/track";
+import { ConsentProvider } from "@/features/consent/ConsentProvider";
+import { CookieBanner, CookiePreferencesDialog } from "@/features/consent/CookieBanner";
 import { BrandProvider } from "./BrandProvider";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { PageFallback } from "@/components/shared/PageFallback";
@@ -47,29 +49,33 @@ export function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrandProvider>
-          <BrowserRouter>
-            <RouteEffects />
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/biler" element={<VehicleListPage />} />
-                  <Route path="/biler/:slug" element={<VehicleDetailPage />} />
-                  <Route path="/solgte-biler" element={<SoldVehiclesPage />} />
-                  <Route path="/saelg-din-bil" element={<SellCarPage />} />
-                  <Route path="/saelg-din-bil/tak/:reference" element={<SellCarThanksPage />} />
-                  <Route path="/finansiering" element={<FinancingPage />} />
-                  <Route path="/om-os" element={<AboutPage />} />
-                  <Route path="/kontakt" element={<ContactPage />} />
-                  <Route path="/favoritter" element={<FavoritesPage />} />
-                  <Route path="/cookieindstillinger" element={<CookieSettingsPage />} />
-                  <Route path="/:legalSlug" element={<LegalPage />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Route>
-                <Route path="/admin/*" element={<AdminRoutes />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+          <ConsentProvider>
+            <BrowserRouter>
+              <RouteEffects />
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route element={<PublicLayout />}>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/biler" element={<VehicleListPage />} />
+                    <Route path="/biler/:slug" element={<VehicleDetailPage />} />
+                    <Route path="/solgte-biler" element={<SoldVehiclesPage />} />
+                    <Route path="/saelg-din-bil" element={<SellCarPage />} />
+                    <Route path="/saelg-din-bil/tak/:reference" element={<SellCarThanksPage />} />
+                    <Route path="/finansiering" element={<FinancingPage />} />
+                    <Route path="/om-os" element={<AboutPage />} />
+                    <Route path="/kontakt" element={<ContactPage />} />
+                    <Route path="/favoritter" element={<FavoritesPage />} />
+                    <Route path="/cookieindstillinger" element={<CookieSettingsPage />} />
+                    <Route path="/:legalSlug" element={<LegalPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
+                  <Route path="/admin/*" element={<AdminRoutes />} />
+                </Routes>
+              </Suspense>
+              <CookieBanner />
+              <CookiePreferencesDialog />
+            </BrowserRouter>
+          </ConsentProvider>
         </BrandProvider>
       </QueryClientProvider>
     </HelmetProvider>
