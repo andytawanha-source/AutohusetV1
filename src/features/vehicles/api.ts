@@ -84,9 +84,17 @@ async function fetchOrganizationId(): Promise<string> {
 async function fetchAllPublicVehicles(): Promise<Vehicle[]> {
   if (!isSupabaseConfigured) return getDemoVehicles();
   const orgId = await fetchOrganizationId();
+  // Eksplicit kolonneliste: anonyme har IKKE adgang til vin/internal_notes,
+  // og "*" ville derfor få hele forespørgslen afvist af Postgres' kolonnerettigheder.
+  const PUBLIC_COLUMNS =
+    "id, organization_id, make, model, variant, model_year, first_registration, mileage_km, " +
+    "price_dkk, monthly_price_dkk, fuel_type, transmission, body_type, color, doors, seats, " +
+    "power_hp, engine, battery_kwh, range_km, consumption, tax_period_dkk, registration_number, " +
+    "show_registration_number, description, equipment, badges, is_featured, seo_title, " +
+    "seo_description, slug, status, publish_at, sold_at, created_at";
   const { data, error } = await getSupabase()
     .from("vehicles")
-    .select("*, vehicle_images(*)")
+    .select(`${PUBLIC_COLUMNS}, vehicle_images(*)`)
     .eq("organization_id", orgId)
     .in("status", ["published", "reserved", "sold"])
     .is("deleted_at", null)
