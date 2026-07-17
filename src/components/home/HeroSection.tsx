@@ -57,13 +57,18 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-brand-primary text-white" aria-label="Find eller sælg din bil">
-      {/* Diskret animeret spotlight-gradient bag indholdet */}
+      {/* Hero-baggrundsbillede (public/hero.jpg) med kongeblåt overlay for læsbarhed */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/hero.jpg')" }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 70% 55% at 70% 30%, rgb(var(--brand-accent) / 0.25), transparent 65%), radial-gradient(ellipse 55% 45% at 20% 80%, rgb(var(--brand-secondary) / 0.6), transparent 60%)",
+            "linear-gradient(105deg, rgb(var(--brand-primary) / 0.92) 0%, rgb(var(--brand-primary) / 0.78) 45%, rgb(var(--brand-primary) / 0.45) 100%)",
         }}
       />
 
