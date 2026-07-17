@@ -1,6 +1,7 @@
 // Edge Function: plate-lookup
 // Server-side nummerpladeopslag med provider-abstraktion, rate limiting,
 // feature flag og logging uden eksponering af API-nøgler (spec pkt. 11).
+// Understøttede providers: mock (default) · motorapi (motorapi.dk) · generisk HTTP.
 // deno-lint-ignore-file no-explicit-any
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -66,62 +67,116 @@ function mockLookup(plate: string): NormalizedResult | null {
   return { provider: "mock", isMock: true, registrationNumber: plate, ...templates[h % templates.length] };
 }
 
-/**
- * Generisk HTTP-provider. Feltmapningen SKAL tilpasses den valgte leverandørs
- * dokumentation, når kontrakten er på plads (se docs/PLAN-06-EKSTERNE-KONTI.md).
- */
-async function httpProviderLookup(plate: string, provider: string): Promise<NormalizedResult | null> {
-  const baseUrl = Deno.env.get("VEHICLE_LOOKUP_API_URL");
-  const apiKey = Deno.env.get("VEHICLE_LOOKUP_API_KEY");
-  if (!baseUrl || !apiKey) throw new Error("Provider er ikke konfigureret");
-
+async function fetchWithRetry(url: string, headers: Record<string, string>): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-      const res = await fetch(`${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(plate)}`, {
-        headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
-        signal: controller.signal,
-      });
+      const res = await fetch(url, { headers, signal: controller.signal });
       clearTimeout(timer);
-
-      if (res.status === 404) return null;
-      if (!res.ok) throw new Error(`Provider svarede HTTP ${res.status}`);
-      const data: any = await res.json();
-
-      // TODO ved leverandørvalg: præcis feltmapping pr. provider
-      return {
-        provider,
-        isMock: false,
-        registrationNumber: plate,
-        make: data.make ?? data.maerke,
-        model: data.model,
-        variant: data.variant,
-        modelYear: data.modelYear ?? data.model_year,
-        firstRegistrationDate: data.firstRegistrationDate ?? data.first_registration,
-        fuelType: data.fuelType ?? data.fuel,
-        transmission: data.transmission,
-        bodyType: data.bodyType ?? data.body_type,
-        color: data.color,
-        engineSize: data.engineSize,
-        powerHp: data.powerHp ?? data.hp,
-        powerKw: data.powerKw ?? data.kw,
-        batteryCapacityKwh: data.batteryCapacityKwh,
-        electricRangeKm: data.electricRangeKm,
-        curbWeightKg: data.curbWeightKg,
-        totalWeightKg: data.totalWeightKg,
-        registrationStatus: data.registrationStatus,
-        inspectionDate: data.inspectionDate,
-        nextInspectionDate: data.nextInspectionDate,
-        equipment: data.equipment,
-        rawProviderData: data, // Gemmes kun hvis leverandørens licens tillader det
-      };
+      return res;
     } catch (err) {
       lastError = err;
     }
   }
   throw lastError;
+}
+
+/**
+ * MotorAPI (motorapi.dk) – dansk nummerplade-API. 100 gratis opslag/dag.
+ * Endpoint: GET https://api.motorapi.dk/vehicles/{plade}
+ * Auth: X-AUTH-TOKEN-header (nøglen fra velkomstmailen – verificér header-navnet dér).
+ * Bemærk: engine_power leveres i kW (fx 200.0 kW ≈ 272 hk), engine_volume i ccm.
+ * VIN gemmes kun i rawProviderData og eksponeres aldrig offentligt.
+ */
+async function motorApiLookup(plate: string): Promise<NormalizedResult | null> {
+  const baseUrl = Deno.env.get("VEHICLE_LOOKUP_API_URL") || "https://api.motorapi.dk/vehicles";
+  const apiKey = Deno.env.get("VEHICLE_LOOKUP_API_KEY");
+  if (!apiKey) throw new Error("VEHICLE_LOOKUP_API_KEY mangler");
+
+  const res = await fetchWithRetry(`${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(plate)}`, {
+    "X-AUTH-TOKEN": apiKey,
+    Accept: "application/json",
+  });
+
+  if (res.status === 404) return null;
+  if (res.status === 429) throw new Error("Leverandørens rate limit er nået");
+  if (!res.ok) throw new Error(`MotorAPI svarede HTTP ${res.status}`);
+  const data: any = await res.json();
+  if (!data || !data.registration_number) return null;
+
+  const powerKw = typeof data.engine_power === "number" ? data.engine_power : undefined;
+  return {
+    provider: "motorapi",
+    isMock: false,
+    registrationNumber: plate,
+    make: capitalize(data.make),
+    model: data.model ?? undefined,
+    variant: data.variant ?? undefined,
+    modelYear: data.model_year ?? undefined,
+    // status_date er datoen for den aktuelle registrering
+    firstRegistrationDate: typeof data.status_date === "string" ? data.status_date.slice(0, 10) : undefined,
+    fuelType: data.fuel_type ?? undefined,
+    transmission: undefined, // ikke et selvstændigt felt hos MotorAPI (fremgår evt. af variant)
+    bodyType: data.chassis_type ?? data.type ?? undefined,
+    color: data.color ?? undefined,
+    engineSize: typeof data.engine_volume === "number" ? Math.round(data.engine_volume / 100) / 10 : undefined,
+    powerKw,
+    powerHp: powerKw !== undefined ? Math.round(powerKw * 1.359) : undefined,
+    curbWeightKg: data.own_weight || undefined,
+    totalWeightKg: data.total_weight || undefined,
+    registrationStatus: data.status ?? undefined,
+    // Gem kun rå data hvis licensvilkårene tillader det – bekræft med MotorAPI (LEGAL-CHECKLIST pkt. 22)
+    rawProviderData: data,
+  };
+}
+
+function capitalize(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value) return undefined;
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+/** Generisk HTTP-provider til andre leverandører (feltmapping tilpasses pr. leverandør). */
+async function httpProviderLookup(plate: string, provider: string): Promise<NormalizedResult | null> {
+  const baseUrl = Deno.env.get("VEHICLE_LOOKUP_API_URL");
+  const apiKey = Deno.env.get("VEHICLE_LOOKUP_API_KEY");
+  if (!baseUrl || !apiKey) throw new Error("Provider er ikke konfigureret");
+
+  const res = await fetchWithRetry(`${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(plate)}`, {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Provider svarede HTTP ${res.status}`);
+  const data: any = await res.json();
+
+  return {
+    provider,
+    isMock: false,
+    registrationNumber: plate,
+    make: data.make ?? data.maerke,
+    model: data.model,
+    variant: data.variant,
+    modelYear: data.modelYear ?? data.model_year,
+    firstRegistrationDate: data.firstRegistrationDate ?? data.first_registration,
+    fuelType: data.fuelType ?? data.fuel_type ?? data.fuel,
+    transmission: data.transmission,
+    bodyType: data.bodyType ?? data.body_type,
+    color: data.color,
+    engineSize: data.engineSize,
+    powerHp: data.powerHp ?? data.hp,
+    powerKw: data.powerKw ?? data.kw,
+    batteryCapacityKwh: data.batteryCapacityKwh,
+    electricRangeKm: data.electricRangeKm,
+    curbWeightKg: data.curbWeightKg,
+    totalWeightKg: data.totalWeightKg,
+    registrationStatus: data.registrationStatus ?? data.status,
+    inspectionDate: data.inspectionDate,
+    nextInspectionDate: data.nextInspectionDate,
+    equipment: data.equipment,
+    rawProviderData: data,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -144,12 +199,13 @@ Deno.serve(async (req) => {
   if (!PLATE_RE.test(plate)) return jsonResponse({ status: "error", message: "Ugyldig nummerplade" }, 400);
 
   const plateHash = await sha256(plate);
+  const provider = Deno.env.get("VEHICLE_LOOKUP_PROVIDER") ?? "mock";
 
   const log = async (status: string, errorCode?: string) => {
     try {
       await supabase.from("vehicle_lookup_logs").insert({
         plate_hash: plateHash,
-        provider: Deno.env.get("VEHICLE_LOOKUP_PROVIDER") ?? "mock",
+        provider,
         status,
         duration_ms: Date.now() - started,
         error_code: errorCode ?? null,
@@ -166,7 +222,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ status: "disabled" });
   }
 
-  // Rate limiting pr. IP (autoritativ, baseret på logtabellen)
+  // Rate limiting pr. IP (autoritativ, baseret på logtabellen).
+  // Beskytter samtidig MotorAPI's gratis-kvote (100 opslag/dag) mod misbrug.
   const oneMinuteAgo = new Date(Date.now() - 60_000).toISOString();
   const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString();
   const { count: minuteCount } = await supabase
@@ -184,9 +241,18 @@ Deno.serve(async (req) => {
     return jsonResponse({ status: "rate_limited" }, 429);
   }
 
-  const provider = Deno.env.get("VEHICLE_LOOKUP_PROVIDER") ?? "mock";
   try {
-    const result = provider === "mock" ? mockLookup(plate) : await httpProviderLookup(plate, provider);
+    let result: NormalizedResult | null;
+    switch (provider) {
+      case "mock":
+        result = mockLookup(plate);
+        break;
+      case "motorapi":
+        result = await motorApiLookup(plate);
+        break;
+      default:
+        result = await httpProviderLookup(plate, provider);
+    }
     if (!result) {
       await log("not_found");
       return jsonResponse({ status: "not_found" });

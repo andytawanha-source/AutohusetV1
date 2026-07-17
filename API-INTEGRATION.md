@@ -32,3 +32,20 @@ Der hentes og vises aldrig private ejeroplysninger — kun tekniske køretøjsda
 # E-mailintegration
 
 Adapter i `supabase/functions/_shared/email.ts`: `mock` (logger til konsol), `resend`, `postmark`. Vælges med `EMAIL_PROVIDER` + `EMAIL_API_KEY` + `EMAIL_FROM_ADDRESS` (verificér afsenderdomæne med SPF/DKIM hos leverandøren). Alle afsendelser logges i `email_logs` med status, provider-ID, fejl og forsøg. Leadmodtager pr. brand: `brands.lead_email` (fallback: `ADMIN_LEAD_EMAIL`-secret). Store billeder vedhæftes aldrig — forhandleren ser dem via signerede links i adminpanelet.
+
+## MotorAPI (valgt leverandør – klar til aktivering)
+
+MotorAPI (motorapi.dk, Lasando ApS, CVR 45081516) er integreret med dedikeret feltmapning. **100 gratis opslag pr. dag** (~3.000/md.), derefter 0,02–0,15 kr. pr. opslag ekskl. moms, faktureret månedligt.
+
+**Aktivering:**
+1. Bestil en API-nøgle på motorapi.dk (kun e-mail påkrævet — nøglen kommer i velkomstmailen).
+2. Sæt secrets:
+   ```bash
+   supabase secrets set VEHICLE_LOOKUP_PROVIDER=motorapi VEHICLE_LOOKUP_API_KEY=<nøgle>
+   supabase functions deploy plate-lookup
+   ```
+3. Verificér i velkomstmailen, at auth-headeren hedder `X-AUTH-TOKEN`, og at endpointet er `https://api.motorapi.dk/vehicles/{plade}` — ellers justeres `VEHICLE_LOOKUP_API_URL`-secret og headeren i `motorApiLookup()`.
+
+**Feltmapning (fra MotorAPI's dokumenterede svar):** make/model/variant/model_year → direkte; `status` → registreringsstatus; `chassis_type` → karrosseri; `engine_power` er i **kW** og omregnes til hk (×1,359); `engine_volume` er i ccm og omregnes til liter; `own_weight`/`total_weight` → egen-/totalvægt. Gearkasse og synsdata leveres ikke som selvstændige felter. `vin` gemmes kun i rå-data og vises aldrig offentligt.
+
+**Compliance (LEGAL-CHECKLIST pkt. 22):** Afklar med MotorAPI før lancering: databehandleraftale, om data må gemmes i leads (`rawProviderData`), og om data må bruges til leadgenerering. De interne rate limits (5/min, 20/time pr. IP) beskytter samtidig den gratis dagskvote mod misbrug.
