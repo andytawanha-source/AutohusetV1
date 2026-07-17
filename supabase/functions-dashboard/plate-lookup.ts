@@ -1,3 +1,22 @@
+export const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // Begræns til brandets domæner før produktion
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+export function handleOptions(req: Request): Response | null {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+  return null;
+}
+
+export function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 // Edge Function: plate-lookup
 // Server-side nummerpladeopslag med provider-abstraktion, rate limiting,
 // feature flag og logging uden eksponering af API-nøgler (spec pkt. 11).
@@ -5,7 +24,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { handleOptions, jsonResponse } from "../_shared/cors.ts";
+
 
 interface NormalizedResult {
   provider: string;
@@ -260,8 +279,9 @@ Deno.serve(async (req) => {
     await log("success");
     return jsonResponse({ status: "success", result });
   } catch (err) {
-    console.error("Opslag fejlede:", err instanceof Error ? err.message : err);
-    await log("error", "PROVIDER_ERROR");
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Opslag fejlede:", message);
+    await log("error", message.slice(0, 100));
     return jsonResponse({ status: "error" }, 502);
   }
 });

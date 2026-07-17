@@ -44,7 +44,7 @@ MotorAPI (motorapi.dk, Lasando ApS, CVR 45081516) er integreret med dedikeret fe
    supabase secrets set VEHICLE_LOOKUP_PROVIDER=motorapi VEHICLE_LOOKUP_API_KEY=<nøgle>
    supabase functions deploy plate-lookup
    ```
-3. Verificér i velkomstmailen, at auth-headeren hedder `X-AUTH-TOKEN`, og at endpointet er `https://api.motorapi.dk/vehicles/{plade}` — ellers justeres `VEHICLE_LOOKUP_API_URL`-secret og headeren i `motorApiLookup()`.
+3. Verificér i velkomstmailen, at auth-headeren hedder `X-AUTH-TOKEN`, og at endpointet er `https://v1.motorapi.dk/vehicles/{plade}` — ellers justeres `VEHICLE_LOOKUP_API_URL`-secret og headeren i `motorApiLookup()`.
 
 **Feltmapning (fra MotorAPI's dokumenterede svar):** make/model/variant/model_year → direkte; `status` → registreringsstatus; `chassis_type` → karrosseri; `engine_power` er i **kW** og omregnes til hk (×1,359); `engine_volume` er i ccm og omregnes til liter; `own_weight`/`total_weight` → egen-/totalvægt. Gearkasse og synsdata leveres ikke som selvstændige felter. `vin` gemmes kun i rå-data og vises aldrig offentligt.
 
