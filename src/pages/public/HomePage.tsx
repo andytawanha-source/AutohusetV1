@@ -103,7 +103,7 @@ export default function HomePage() {
             ))}
           </ol>
           <Link to="/saelg-din-bil"
-            className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand-accent px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
+            className="mt-8 inline-flex items-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
             Start din vurdering <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
               <Link to="/om-os" className="rounded-md border border-white/30 px-5 py-2.5 font-medium hover:bg-white/10">
                 Læs mere om os
               </Link>
-              <Link to="/kontakt" className="rounded-md bg-brand-accent px-5 py-2.5 font-semibold text-brand-primary">
+              <Link to="/kontakt" className="rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-5 py-2.5 font-semibold text-brand-primary">
                 Kontakt os
               </Link>
             </div>

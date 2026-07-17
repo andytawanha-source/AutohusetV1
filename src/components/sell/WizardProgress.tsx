@@ -17,7 +17,7 @@ export function WizardProgress({ current }: { current: number }) {
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors",
                   done && "bg-brand-primary text-white",
-                  active && "bg-brand-accent text-brand-primary ring-4 ring-brand-accent/25",
+                  active && "bg-white text-brand-primary ring-4 ring-brand-primary/25",
                   !done && !active && "bg-brand-ink/10 text-brand-ink/50"
                 )}
               >

@@ -41,7 +41,7 @@ export function SiteHeader() {
       )}
     >
       <div className="container flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="font-display text-xl font-bold tracking-tight" aria-label={`${brand.name} – forside`}>
+        <Link to="/" className="font-display text-xl font-bold uppercase tracking-wider" aria-label={`${brand.name} – forside`}>
           {brand.name}
         </Link>
 
@@ -74,7 +74,7 @@ export function SiteHeader() {
           </a>
           <Link
             to="/saelg-din-bil"
-            className="hidden rounded-md bg-brand-accent px-4 py-2 text-sm font-semibold text-brand-primary transition-transform hover:scale-[1.03] md:block"
+            className="hidden rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-4 py-2 text-sm font-semibold text-brand-primary transition-transform hover:scale-[1.03] md:block"
           >
             Sælg din bil
           </Link>

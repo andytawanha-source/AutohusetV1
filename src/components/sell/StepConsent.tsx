@@ -156,7 +156,7 @@ export function StepConsent({
           <ArrowLeft className="h-4 w-4" aria-hidden /> Tilbage
         </button>
         <button type="submit" disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-md bg-brand-accent px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] disabled:opacity-60 motion-reduce:transform-none">
+          className="inline-flex items-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] disabled:opacity-60 motion-reduce:transform-none">
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
           Send min henvendelse
         </button>

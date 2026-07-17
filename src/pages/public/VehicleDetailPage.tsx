@@ -213,7 +213,7 @@ export default function VehicleDetailPage() {
             <p className="font-display text-lg font-bold text-brand-primary">
               {vehicle.priceDkk !== null && formatPrice(vehicle.priceDkk)}
             </p>
-            <a href="#forespoergsel" className="rounded-md bg-brand-accent px-5 py-2.5 font-semibold text-brand-primary">
+            <a href="#forespoergsel" className="rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-5 py-2.5 font-semibold text-brand-primary">
               Send forespørgsel
             </a>
           </div>

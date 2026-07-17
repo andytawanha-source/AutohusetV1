@@ -43,7 +43,7 @@ export default function AboutPage() {
           <p className="mt-2 text-white/75">Find din næste bil, eller få et uforpligtende tilbud på din nuværende.</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link to="/biler" className="rounded-md border border-white/30 px-5 py-2.5 font-medium hover:bg-white/10">Se biler til salg</Link>
-            <Link to="/saelg-din-bil" className="rounded-md bg-brand-accent px-5 py-2.5 font-semibold text-brand-primary">Sælg din bil</Link>
+            <Link to="/saelg-din-bil" className="rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-5 py-2.5 font-semibold text-brand-primary">Sælg din bil</Link>
           </div>
         </div>
       </div>

@@ -92,7 +92,7 @@ export function HeroSection() {
                 onClick={() => setMode(key)}
                 className={cn(
                   "flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors",
-                  mode === key ? "bg-brand-accent text-brand-primary" : "text-white/80 hover:text-white"
+                  mode === key ? "bg-white text-brand-primary" : "text-white/80 hover:text-white"
                 )}
               >
                 <Icon className="h-4 w-4" aria-hidden />
@@ -152,7 +152,7 @@ export function HeroSection() {
                 </label>
               </div>
               <button type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-brand-accent px-5 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-5 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
                 Se {inventory.data ? matchCount : ""} {matchCount === 1 ? "bil" : "biler"}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </button>
@@ -190,7 +190,7 @@ export function HeroSection() {
                 </div>
               </div>
               <button type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-brand-accent px-5 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-5 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
                 Få et uforpligtende tilbud
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </button>
