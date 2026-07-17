@@ -1,21 +1,21 @@
 import type { BrandConfig } from "./brand.types";
 
 /**
- * Autohuset Vest – nordisk, åben og imødekommende.
- * Farver fra spec: primær #0D3B45, sekundær #164E63, accent #5BC0EB,
- * baggrund #F5F2EA, varm neutral #E8D7B5, tekst #102A33.
+ * Autohuset Vest – kongeblå/hvidt tema (kundeønske, juli 2026).
+ * Primær: kongeblå #2038B0 · sekundær: mørk kongeblå #16277D ·
+ * accent: lys kongeblå #8FB0FF · baggrund: hvid · flade: iskold lyseblå #EEF2FB.
  */
 export const autohusetVest: BrandConfig = {
   key: "autohuset-vest",
   name: "Autohuset Vest",
   domain: "[AUTOHUSET VEST DOMÆNE]",
   colors: {
-    primary: "13 59 69", // #0D3B45
-    secondary: "22 78 99", // #164E63
-    accent: "91 192 235", // #5BC0EB
-    surface: "245 242 234", // #F5F2EA
-    surfaceWarm: "232 215 181", // #E8D7B5
-    ink: "16 42 51", // #102A33
+    primary: "32 56 176", // #2038B0 kongeblå
+    secondary: "22 39 125", // #16277D mørk kongeblå
+    accent: "143 176 255", // #8FB0FF lys kongeblå
+    surface: "255 255 255", // #FFFFFF hvid
+    surfaceWarm: "238 242 251", // #EEF2FB iskold lyseblå (sektionsflader)
+    ink: "14 21 51", // #0E1533 mørk blåsort tekst
   },
   fonts: {
     display: "'Outfit'",

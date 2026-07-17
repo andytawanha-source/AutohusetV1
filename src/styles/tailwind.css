@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brandvariabler sættes af BrandProvider (inline på <html>). Defaults = Autohuset Vest. */
+/* Brandvariabler sættes af BrandProvider (inline på <html>). Defaults = Autohuset Vest (kongeblå/hvid). */
 :root {
-  --brand-primary: 13 59 69;
-  --brand-secondary: 22 78 99;
-  --brand-accent: 91 192 235;
-  --brand-surface: 245 242 234;
-  --brand-surface-warm: 232 215 181;
-  --brand-ink: 16 42 51;
+  --brand-primary: 32 56 176;
+  --brand-secondary: 22 39 125;
+  --brand-accent: 143 176 255;
+  --brand-surface: 255 255 255;
+  --brand-surface-warm: 238 242 251;
+  --brand-ink: 14 21 51;
   --font-display: "Outfit";
   --font-body: "Inter";
 }
