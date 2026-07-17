@@ -23,6 +23,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Enhedstests kører ALTID i demo-mode, uanset lokal .env
+    env: { VITE_SUPABASE_URL: "", VITE_SUPABASE_ANON_KEY: "", VITE_BRAND_KEY: "autohuset-vest" },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}", "tests/unit/**/*.test.{ts,tsx}"],
