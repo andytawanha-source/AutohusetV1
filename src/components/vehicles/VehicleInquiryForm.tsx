@@ -14,7 +14,7 @@ const INQUIRY_LABELS: Record<InquiryInput["inquiryType"], string> = {
   contact: "Kontakt os om bilen",
   test_drive: "Book prøvetur",
   finance: "Få finansiering",
-  trade_in: "Byt din bil",
+  trade_in: "Hvad er din byttebil værd?",
 };
 
 const inputCls =

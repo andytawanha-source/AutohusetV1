@@ -57,11 +57,14 @@ export default function HomePage() {
             <p className="mt-1 text-sm text-brand-ink/60">biler på lager</p>
           </div>
           <div>
-            <p className="font-display text-3xl font-bold text-brand-primary">[ÅRS ERFARING]</p>
+            {/* Beregnet fra stiftelsen af Autohuset Vest ApS (15.04.2024) */}
+            <p className="font-display text-3xl font-bold text-brand-primary">
+              <AnimatedCounter value={new Date().getFullYear() - 2024} />
+            </p>
             <p className="mt-1 text-sm text-brand-ink/60">års erfaring</p>
           </div>
           <div>
-            <p className="font-display text-3xl font-bold text-brand-primary">[ANTAL KUNDER]</p>
+            <p className="font-display text-3xl font-bold text-brand-primary">100+</p>
             <p className="mt-1 text-sm text-brand-ink/60">tilfredse kunder</p>
           </div>
         </div>
@@ -218,8 +221,10 @@ export default function HomePage() {
           <div>
             <h2 id="about-heading" className="font-display text-2xl font-bold lg:text-3xl">Om {brand.name}</h2>
             <p className="mt-3 leading-relaxed text-white/75">
-              [OM OS-TEKST – leveres af forhandleren. Kort fortælling om historie, værdier og hvorfor kunderne
-              vælger {brand.name}.]
+              Hos {brand.name} handler bilhandel om én ting: tryghed. Alle vores biler er gennemgået og
+              klargjort, priserne er gennemsigtige, og du får altid et ærligt svar – også når det ikke er det,
+              du havde håbet på. Mere end 100 kunder har allerede handlet trygt hos os, og vi vil hellere have
+              en god handel, du fortæller videre om, end en hurtig handel, du fortryder.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link to="/om-os" className="rounded-md border border-white/30 px-5 py-2.5 font-medium hover:bg-white/10">

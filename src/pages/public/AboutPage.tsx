@@ -14,13 +14,21 @@ export default function AboutPage() {
         <h1 className="font-display text-3xl font-bold text-brand-primary lg:text-4xl">Om {brand.name}</h1>
         <div className="mt-4 space-y-4 leading-relaxed text-brand-ink/75">
           <p>
-            [OM OS – AFSNIT 1: Forhandlerens historie og baggrund. Leveres af virksomheden og erstattes før lancering.]
+            {brand.name} blev grundlagt i 2024 med en enkel ambition: at gøre bilhandel til noget, man kan
+            være tryg ved. Vi ved, at et bilkøb er en af de største beslutninger i hverdagen – og at alt for
+            mange har prøvet at stå med en dårlig mavefornemmelse på en bilplads. Det ville vi lave om på.
+            I dag har mere end 100 kunder handlet hos os, og langt de fleste kommer fra anbefalinger.
           </p>
           <p>
-            [OM OS – AFSNIT 2: Værdier, tilgang til bilhandel og hvad kunderne kan forvente.]
+            Vores tilgang er ligetil: gennemsigtige priser uden skjulte gebyrer, ærlige svar om bilens stand
+            og historik, og et uforpligtende tilbud, du kan tage med dig uden pres. Uanset om du køber,
+            sælger eller bytter din bil, får du samme åbenhed – og vi svarer altid hurtigt, så du ikke går
+            og venter i uvished.
           </p>
           <p>
-            [OM OS – AFSNIT 3: Team, værksted/klargøring og eventuelle specialer.]
+            Hver eneste bil på vores plads er gennemgået og klargjort, før den bliver sat til salg. Vi
+            kontrollerer teknik, service og stand, så du ved præcis, hvad du køber – og vi hjælper dig hele
+            vejen med finansiering, indregistrering og papirarbejde, samlet ét sted på Islevsdalsvej i Rødovre.
           </p>
         </div>
       </div>
