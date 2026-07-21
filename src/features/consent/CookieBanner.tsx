@@ -65,7 +65,7 @@ export function CookiePreferencesDialog() {
             Gem mine valg
           </button>
           <button type="button" onClick={() => savePreferences({ functional: true, statistics: true, marketing: true })}
-            className="rounded-md bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+            className="rounded-md bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">
             Accepter alle
           </button>
         </div>
@@ -110,7 +110,7 @@ export function CookieBanner() {
             Tilpas
           </button>
           <button type="button" onClick={acceptAll}
-            className="rounded-md bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+            className="rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
             Accepter alle
           </button>
         </div>

@@ -77,7 +77,7 @@ export function VehicleInquiryForm({
               className={cn(
                 "cursor-pointer rounded-md border px-3 py-2 text-center text-sm font-medium transition-colors",
                 inquiryType === type
-                  ? "border-brand-primary bg-brand-primary text-white"
+                  ? "border-brand-primary bg-brand-gradient text-white"
                   : "border-brand-ink/15 bg-white hover:border-brand-primary/50"
               )}
             >
@@ -102,7 +102,7 @@ export function VehicleInquiryForm({
               track("start_sell_car_cta", { vehicle_id: vehicle.id, source: "vehicle_detail_inquiry_form" });
               setShowTradeInModal(true);
             }}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
           >
             <Repeat className="h-4 w-4" aria-hidden /> Start byttebilvurdering
           </button>
@@ -158,7 +158,7 @@ export function VehicleInquiryForm({
       <button
         type="submit"
         disabled={formState.isSubmitting}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {formState.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Send forespørgsel

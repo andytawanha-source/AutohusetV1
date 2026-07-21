@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: "/biler", label: "Biler" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
   { to: "/finansiering", label: "Finansiering" },
+  { to: "/biludlejning", label: "Biludlejning" },
   { to: "/om-os", label: "Om os" },
   { to: "/kontakt", label: "Kontakt" },
 ];
@@ -37,7 +38,7 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-brand-primary text-white transition-shadow",
+        "sticky top-0 z-50 bg-brand-gradient text-white transition-shadow",
         scrolled && "shadow-lg"
       )}
     >
@@ -93,7 +94,7 @@ export function SiteHeader() {
       </div>
 
       {mobileOpen && (
-        <nav id="mobile-menu" aria-label="Mobilnavigation" className="border-t border-white/10 bg-brand-primary lg:hidden">
+        <nav id="mobile-menu" aria-label="Mobilnavigation" className="border-t border-white/10 bg-brand-gradient lg:hidden">
           <ul className="container flex flex-col py-2">
             {NAV_ITEMS.map((item) => (
               <li key={item.to}>

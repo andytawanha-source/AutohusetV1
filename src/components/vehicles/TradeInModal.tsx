@@ -192,7 +192,7 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white hover:opacity-90"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90"
               >
                 Luk
               </button>

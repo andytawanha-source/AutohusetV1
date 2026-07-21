@@ -188,7 +188,7 @@ export default function VehicleDetailPage() {
                 href={`tel:${brand.contact.phone}`}
                 data-track="click_phone"
                 onClick={() => track("click_phone", { vehicle_id: vehicle.id })}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-md border border-brand-primary px-5 py-3 font-semibold text-brand-primary transition-colors hover:bg-brand-primary hover:text-white"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-md border border-brand-primary px-5 py-3 font-semibold text-brand-primary transition-colors hover:bg-brand-gradient hover:text-white"
               >
                 <Phone className="h-4 w-4" aria-hidden /> Ring {brand.contact.phone}
               </a>

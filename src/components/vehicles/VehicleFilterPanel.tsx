@@ -158,7 +158,7 @@ export function VehicleFilterPanel({ filters, onChange, inventory, resultCount }
       </div>
 
       <button type="button" onClick={() => onChange({})}
-        className="w-full rounded-md border border-brand-primary px-4 py-2 text-sm font-medium text-brand-primary transition-colors hover:bg-brand-primary hover:text-white">
+        className="w-full rounded-md border border-brand-primary px-4 py-2 text-sm font-medium text-brand-primary transition-colors hover:bg-brand-gradient hover:text-white">
         Nulstil filtre
       </button>
     </div>

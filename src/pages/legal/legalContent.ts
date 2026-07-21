@@ -45,7 +45,7 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
       { heading: "Virksomhedsoplysninger", body: "[JURIDISK NAVN], [ADRESSE], CVR [CVR-NUMMER], telefon [TELEFON], e-mail [E-MAIL]." },
       { heading: "Anvendelse", body: "Disse betingelser gælder for køb og salg af biler hos [VIRKSOMHEDSNAVN]. Hjemmesidens annoncer er en opfordring til at gøre tilbud – en bindende aftale indgås først ved underskrevet slutseddel/købsaftale." },
       { heading: "Priser og betaling", body: "Alle priser er i danske kroner inkl. moms/afgifter, medmindre andet fremgår (fx biler uden afgift eller engrospriser). Der tages forbehold for tastefejl, mellemsalg og prisændringer. [BETALINGSVILKÅR INDSÆTTES]." },
-      { heading: "Reklamation og garanti", body: "Ved forbrugerkøb gælder købelovens reklamationsregler (24 måneder for oprindelige mangler). [EVENTUELLE GARANTIORDNINGER BESKRIVES HER]." },
+      { heading: "Reklamation og garanti", body: "Ved forbrugerkøb gælder købelovens reklamationsregler (24 måneder for oprindelige mangler). Herudover tilbyder vi garantier på udvalgte biler i samarbejde med AutoConcept – se de konkrete vilkår for den enkelte bil eller kontakt os for detaljer." },
       { heading: "Køb af din bil", body: "Tilbud afgivet via salgsvurderingen er vejledende og uforpligtende for begge parter, indtil bilen er besigtiget og en skriftlig aftale er indgået. Tilbud forudsætter, at bilens stand svarer til de afgivne oplysninger." },
       { heading: "Version", body: "Version [0.1 – UDKAST]. Skal gennemgås juridisk før lancering." },
     ],

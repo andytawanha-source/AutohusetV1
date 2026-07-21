@@ -67,7 +67,7 @@ export default function AdminSettingsPage() {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-brand-primary">Indstillinger</h1>
         <button type="submit" disabled={saving}
-          className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60">
+          className="inline-flex items-center gap-1.5 rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
           Gem
         </button>

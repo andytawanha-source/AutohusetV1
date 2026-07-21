@@ -21,7 +21,7 @@ export default function FavoritesPage() {
             <Heart className="mx-auto h-10 w-10 text-brand-ink/20" aria-hidden />
             <p className="mt-3 font-display text-lg font-semibold">Du har ingen favoritter endnu</p>
             <p className="mt-1 text-brand-ink/70">Tryk på hjertet på en bil for at gemme den her.</p>
-            <Link to="/biler" className="mt-5 inline-block rounded-md bg-brand-primary px-6 py-2.5 font-medium text-white hover:opacity-90">
+            <Link to="/biler" className="mt-5 inline-block rounded-md bg-brand-gradient px-6 py-2.5 font-medium text-white hover:opacity-90">
               Se biler til salg
             </Link>
           </div>

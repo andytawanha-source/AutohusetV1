@@ -78,7 +78,7 @@ export function StepConfirmVehicle({
           <button
             type="button"
             onClick={onConfirm}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white hover:opacity-90"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90"
           >
             <CheckCircle2 className="h-4 w-4" aria-hidden /> Ja, det er min bil
           </button>
@@ -155,7 +155,7 @@ export function StepConfirmVehicle({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white hover:opacity-90">
+        <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90">
           Fortsæt <ArrowRight className="h-4 w-4" aria-hidden />
         </button>
         {lookup && (

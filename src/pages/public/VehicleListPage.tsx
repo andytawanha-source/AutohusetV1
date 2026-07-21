@@ -132,7 +132,7 @@ export default function VehicleListPage() {
               <button
                 type="button"
                 onClick={() => updateFilters({})}
-                className="mt-4 rounded-md bg-brand-primary px-5 py-2 font-medium text-white hover:opacity-90"
+                className="mt-4 rounded-md bg-brand-gradient px-5 py-2 font-medium text-white hover:opacity-90"
               >
                 Nulstil filtre
               </button>
@@ -169,7 +169,7 @@ export default function VehicleListPage() {
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}
-              className="mt-5 w-full rounded-md bg-brand-primary px-4 py-3 font-semibold text-white"
+              className="mt-5 w-full rounded-md bg-brand-gradient px-4 py-3 font-semibold text-white"
             >
               Vis {vehicles?.length ?? 0} biler
             </button>

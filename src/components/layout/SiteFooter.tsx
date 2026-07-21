@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { to: "/biler", label: "Biler" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
   { to: "/finansiering", label: "Finansiering" },
+  { to: "/biludlejning", label: "Biludlejning" },
   { to: "/om-os", label: "Om os" },
   { to: "/kontakt", label: "Kontakt" },
 ];
@@ -26,7 +27,7 @@ export function SiteFooter() {
   const brand = useBrand();
 
   return (
-    <footer className="bg-brand-primary text-white">
+    <footer className="bg-brand-gradient text-white">
       <div className="container grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <Logo className="text-white" />

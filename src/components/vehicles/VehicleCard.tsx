@@ -99,7 +99,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
           <span
             aria-hidden
-            className="rounded-md bg-brand-primary/5 px-3 py-1.5 text-sm font-medium text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white"
+            className="rounded-md bg-brand-primary/5 px-3 py-1.5 text-sm font-medium text-brand-primary transition-colors group-hover:bg-brand-gradient group-hover:text-white"
           >
             Se bilen
           </span>

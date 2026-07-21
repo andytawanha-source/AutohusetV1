@@ -59,7 +59,7 @@ export function HeroSection() {
   const set = (patch: Partial<VehicleFilters>) => setFilters((f) => ({ ...f, ...patch }));
 
   return (
-    <section className="relative overflow-hidden bg-brand-primary text-white" aria-label="Find eller sælg din bil">
+    <section className="relative overflow-hidden bg-brand-gradient text-white" aria-label="Find eller sælg din bil">
       {/* Preload af hero-billedet, så LCP ikke venter på at CSS/JS opdager det */}
       <Helmet>
         <link rel="preload" as="image" href={media.heroDesktop} media="(min-width: 1024px)" />
@@ -84,7 +84,7 @@ export function HeroSection() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(105deg, rgb(var(--brand-primary) / 0.92) 0%, rgb(var(--brand-primary) / 0.78) 45%, rgb(var(--brand-primary) / 0.45) 100%)",
+            "linear-gradient(105deg, rgb(var(--brand-primary) / 0.92) 0%, rgb(var(--brand-secondary) / 0.82) 45%, rgb(var(--brand-primary) / 0.5) 100%)",
         }}
       />
 

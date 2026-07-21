@@ -82,7 +82,7 @@ export function ContactForm() {
       {serverError && <p className="rounded-md bg-red-50 p-3 text-sm text-red-800" role="alert">{serverError}</p>}
 
       <button type="submit" disabled={formState.isSubmitting}
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60">
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-gradient px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60">
         {formState.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Send besked
       </button>

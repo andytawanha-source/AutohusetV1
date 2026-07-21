@@ -4,7 +4,7 @@ const STYLES: Record<string, string> = {
   Solgt: "bg-brand-ink text-white",
   Reserveret: "bg-amber-600 text-white",
   Nyhed: "bg-brand-accent text-brand-primary",
-  Populær: "bg-brand-primary text-white",
+  Populær: "bg-brand-gradient text-white",
   Elbil: "bg-emerald-600 text-white",
 };
 

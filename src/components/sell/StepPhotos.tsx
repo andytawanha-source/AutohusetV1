@@ -88,7 +88,7 @@ export function StepPhotos({
               className={cn(
                 "cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors",
                 activeCategory === cat.key
-                  ? "border-brand-primary bg-brand-primary text-white"
+                  ? "border-brand-primary bg-brand-gradient text-white"
                   : "border-brand-ink/15 bg-white hover:border-brand-primary/50"
               )}
             >
@@ -174,7 +174,7 @@ export function StepPhotos({
           <ArrowLeft className="h-4 w-4" aria-hidden /> Tilbage
         </button>
         <button type="button" onClick={onNext}
-          className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white hover:opacity-90">
+          className="inline-flex items-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90">
           {photos.length === 0 ? "Fortsæt uden billeder" : "Fortsæt"} <ArrowRight className="h-4 w-4" aria-hidden />
         </button>
       </div>

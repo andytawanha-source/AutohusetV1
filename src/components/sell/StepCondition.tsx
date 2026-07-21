@@ -138,7 +138,7 @@ export function StepCondition({
         <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-brand-ink/60 hover:text-brand-primary">
           <ArrowLeft className="h-4 w-4" aria-hidden /> Tilbage
         </button>
-        <button type="submit" className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white hover:opacity-90">
+        <button type="submit" className="inline-flex items-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90">
           Fortsæt <ArrowRight className="h-4 w-4" aria-hidden />
         </button>
       </div>

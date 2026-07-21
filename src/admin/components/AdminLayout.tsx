@@ -25,7 +25,7 @@ export function AdminLayout() {
     <div className="flex min-h-screen bg-brand-surface">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-60 -translate-x-full bg-brand-primary text-white transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 w-60 -translate-x-full bg-brand-gradient text-white transition-transform lg:static lg:translate-x-0",
           mobileNav && "translate-x-0"
         )}
         aria-label="Adminnavigation"

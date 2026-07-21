@@ -74,7 +74,7 @@ export default function AboutPage() {
             ))}
           </ul>
         </div>
-        <div className="flex flex-col justify-center rounded-xl bg-brand-primary p-6 text-white">
+        <div className="flex flex-col justify-center rounded-xl bg-brand-gradient p-6 text-white">
           <h2 className="font-display text-lg font-bold">Skal vi hjælpe dig videre?</h2>
           <p className="mt-2 text-white/75">Find din næste bil, eller få et uforpligtende tilbud på din nuværende.</p>
           <div className="mt-4 flex flex-wrap gap-3">

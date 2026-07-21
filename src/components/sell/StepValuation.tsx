@@ -122,7 +122,7 @@ export function StepValuation({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-6 py-3 font-bold text-white transition-transform hover:scale-[1.02] disabled:opacity-60 motion-reduce:transform-none"
+          className="inline-flex items-center gap-2 rounded-md bg-brand-gradient px-6 py-3 font-bold text-white transition-transform hover:scale-[1.02] disabled:opacity-60 motion-reduce:transform-none"
         >
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
           Send og få det endelige bud

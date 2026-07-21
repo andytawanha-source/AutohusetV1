@@ -135,7 +135,7 @@ export default function AdminLeadDetailPage() {
               <label htmlFor="lead-note" className="sr-only">Ny note</label>
               <input id="lead-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Skriv en intern note…"
                 className="flex-1 rounded-md border border-brand-ink/15 px-3 py-2 text-sm" />
-              <button type="submit" disabled={addNote.isPending} className="rounded-md bg-brand-primary px-4 py-2 text-white disabled:opacity-60" aria-label="Gem note">
+              <button type="submit" disabled={addNote.isPending} className="rounded-md bg-brand-gradient px-4 py-2 text-white disabled:opacity-60" aria-label="Gem note">
                 {addNote.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
               </button>
             </form>

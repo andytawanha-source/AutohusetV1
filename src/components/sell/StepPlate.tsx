@@ -70,7 +70,7 @@ export function StepPlate({
       <button
         type="submit"
         disabled={isLookingUp}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto"
       >
         {isLookingUp ? (
           <>

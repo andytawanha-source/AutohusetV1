@@ -36,6 +36,14 @@ export default function SellCarPage() {
         <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-brand-accent" aria-hidden /> Svar {brand.leadResponseTime}</li>
         <li className="flex items-center gap-2"><Lock className="h-4 w-4 text-brand-accent" aria-hidden /> Dine oplysninger behandles fortroligt</li>
       </ul>
+
+      <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-brand-ink/50">
+        Mangler du en bil, mens handlen falder på plads? Vi samarbejder med{" "}
+        <a href="https://one2movebiludlejning.dk/" target="_blank" rel="noopener noreferrer" className="underline">
+          One2move Biludlejning
+        </a>{" "}
+        om erstatningsbiler til fair priser.
+      </p>
     </div>
   );
 }

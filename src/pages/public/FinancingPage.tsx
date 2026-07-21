@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BadgeCheck, Banknote, FileText, HandCoins } from "lucide-react";
+import { BadgeCheck, Banknote, FileText, HandCoins, ShieldCheck, Umbrella } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { ContactForm } from "@/components/shared/ContactForm";
@@ -44,6 +44,39 @@ export default function FinancingPage() {
           </li>
         ))}
       </ul>
+
+      <div className="mt-10 grid gap-5 sm:grid-cols-2">
+        <a
+          href="https://www.autoconcept.dk/home"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5 transition-colors hover:ring-brand-primary/30"
+        >
+          <ShieldCheck className="h-7 w-7 shrink-0 text-brand-accent" aria-hidden />
+          <span>
+            <span className="block font-semibold text-brand-primary">Bilgaranti via AutoConcept</span>
+            <span className="mt-1 block text-sm text-brand-ink/70">
+              Vi samarbejder med AutoConcept om garantier på vores brugte biler, så du er dækket mod
+              uventede reparationsudgifter efter købet.
+            </span>
+          </span>
+        </a>
+        <a
+          href="https://www.if.dk/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5 transition-colors hover:ring-brand-primary/30"
+        >
+          <Umbrella className="h-7 w-7 shrink-0 text-brand-accent" aria-hidden />
+          <span>
+            <span className="block font-semibold text-brand-primary">Bilforsikring via If</span>
+            <span className="mt-1 block text-sm text-brand-ink/70">
+              Vi hjælper dig med at få din nye bil forsikret gennem If, så den er dækket, allerede når du
+              kører den ud fra pladsen.
+            </span>
+          </span>
+        </a>
+      </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-2">
         <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-brand-ink/5 lg:p-8">

@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-primary px-4 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-gradient px-4 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-60"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
           Log ind

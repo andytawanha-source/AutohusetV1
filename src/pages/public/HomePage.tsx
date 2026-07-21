@@ -96,7 +96,7 @@ export default function HomePage() {
       )}
 
       {/* Sådan sælger du din bil */}
-      <section className="bg-brand-primary py-16 text-white" aria-labelledby="process-heading">
+      <section className="bg-brand-gradient py-16 text-white" aria-labelledby="process-heading">
         <div className="container">
           <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
             <div>
@@ -216,7 +216,7 @@ export default function HomePage() {
       </section>
 
       {/* Om + lokation */}
-      <section className="bg-brand-primary py-14 text-white" aria-labelledby="about-heading">
+      <section className="bg-brand-gradient py-14 text-white" aria-labelledby="about-heading">
         <div className="container grid gap-8 lg:grid-cols-2">
           <div>
             <h2 id="about-heading" className="font-display text-2xl font-bold lg:text-3xl">Om {brand.name}</h2>

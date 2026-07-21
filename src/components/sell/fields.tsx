@@ -43,7 +43,7 @@ export function RadioPills({
             className={cn(
               "cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-colors",
               value === opt.value
-                ? "border-brand-primary bg-brand-primary text-white"
+                ? "border-brand-primary bg-brand-gradient text-white"
                 : "border-brand-ink/15 bg-white hover:border-brand-primary/50"
             )}
           >

@@ -71,7 +71,7 @@ export default function SellCarThanksPage() {
             </a>
           </div>
 
-          <Link to="/" className="mt-6 inline-block rounded-md bg-brand-primary px-6 py-2.5 font-medium text-white hover:opacity-90">
+          <Link to="/" className="mt-6 inline-block rounded-md bg-brand-gradient px-6 py-2.5 font-medium text-white hover:opacity-90">
             Tilbage til forsiden
           </Link>
         </div>
