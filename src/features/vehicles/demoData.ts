@@ -9,11 +9,28 @@ import { resolveBrandKey } from "@/config/brands";
 const ORG_VEST = "11111111-1111-1111-1111-111111111111";
 const ORG_V = "22222222-2222-2222-2222-222222222222";
 
-function img(id: string, n: number, alt: string) {
-  return Array.from({ length: 4 }, (_, i) => ({
+/**
+ * DEMO-BILLEDER: Frit anvendelige stockfotos fra Pexels (Pexels License –
+ * gratis til kommerciel brug, ingen kildeangivelse påkrævet), valgt pr.
+ * biltype så demoen ser præsentabel ud i stedet for grå ikon-placeholders.
+ * Billederne linkes direkte fra Pexels' CDN. Dette er KUN til demo-mode –
+ * når rigtige biler oprettes via admin, uploades rigtige billeder af den
+ * faktiske bil i stedet.
+ */
+const STOCK_PHOTOS_BY_BODY_TYPE: Record<string, number[]> = {
+  SUV: [33145484, 4003121],
+  Hatchback: [9943259, 4223877],
+  Sedan: [100656, 5864402],
+  Stationcar: [18837782, 18837781],
+};
+const FALLBACK_STOCK_PHOTOS = [33145484, 100656];
+
+function img(id: string, bodyType: string | null | undefined, alt: string) {
+  const photoIds = STOCK_PHOTOS_BY_BODY_TYPE[bodyType ?? ""] ?? FALLBACK_STOCK_PHOTOS;
+  return photoIds.map((photoId, i) => ({
     id: `${id}-img-${i}`,
-    url: `/placeholders/car-${((n + i) % 4) + 1}.svg`,
-    altText: `${alt} – demobillede ${i + 1}`,
+    url: `https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&w=1200`,
+    altText: `${alt} – demobillede (stockfoto, Pexels)`,
     isPrimary: i === 0,
     sortOrder: i,
   }));
@@ -58,7 +75,7 @@ function base(
     status: "published",
     soldAt: null,
     createdAt: new Date(Date.now() - seq * 86_400_000).toISOString(),
-    images: img(`demo-${seq}`, seq, alt),
+    images: img(`demo-${seq}`, data.bodyType, alt),
     ...data,
   };
 }
