@@ -65,8 +65,15 @@ export async function submitVehicleInquiry(input: InquiryInput, vehicle: Vehicle
 export const contactSchema = inquirySchema.omit({ inquiryType: true });
 export type ContactInput = z.infer<typeof contactSchema>;
 
-/** Generel kontaktformular (uden bil). */
-export async function submitContactMessage(input: ContactInput): Promise<void> {
+/** Henvendelsestyper der (i modsætning til VehicleInquiryForm) ikke kræver en konkret bil. */
+export type GeneralInquiryType = "contact" | "finance" | "rental";
+
+/**
+ * Generel kontaktformular (uden bil). `inquiryType` mærker henvendelsen, så den
+ * kan filtreres korrekt i den samlede leadindbakke (fx finansiering vs. leje
+ * vs. almindelig kontakt) i stedet for at alt bare hedder "contact".
+ */
+export async function submitContactMessage(input: ContactInput, inquiryType: GeneralInquiryType = "contact"): Promise<void> {
   if (input.website) return; // honeypot
   const now = Date.now();
   if (now - lastSubmit < 10_000) {
@@ -77,7 +84,7 @@ export async function submitContactMessage(input: ContactInput): Promise<void> {
   if (!isSupabaseConfigured) {
     await new Promise((r) => setTimeout(r, 600));
     // eslint-disable-next-line no-console
-    console.info("[DEMO-MODE] Kontaktbesked modtaget (ikke gemt):", input);
+    console.info("[DEMO-MODE] Kontaktbesked modtaget (ikke gemt):", { input, inquiryType });
     return;
   }
 
@@ -91,7 +98,7 @@ export async function submitContactMessage(input: ContactInput): Promise<void> {
   const { error } = await getSupabase().from("vehicle_inquiries").insert({
     organization_id: brand.organization_id,
     vehicle_id: null,
-    inquiry_type: "contact",
+    inquiry_type: inquiryType,
     name: input.name,
     phone: input.phone,
     email: input.email,

@@ -1,6 +1,6 @@
 import { getDemoVehicles } from "@/features/vehicles/demoData";
 import type { Vehicle } from "@/features/vehicles/types";
-import type { AdminLead, AdminLeadDetail, AdminVehicle } from "./types";
+import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminVehicle } from "./types";
 
 /**
  * In-memory demodatalager til adminpanelet, når Supabase ikke er konfigureret.
@@ -203,4 +203,109 @@ export function demoLeadById(id: string): AdminLeadDetail | undefined {
 export function demoUpdateLead(id: string, patch: Partial<AdminLead>): void {
   const lead = demoLeadById(id);
   if (lead) Object.assign(lead, patch);
+}
+
+let inquiries: AdminInquiryDetail[] | null = null;
+
+const DEMO_INQUIRIES: AdminInquiryDetail[] = [
+  {
+    id: "demo-inq-1",
+    inquiryType: "contact",
+    status: "new",
+    createdAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
+    assignedTo: null,
+    followUpAt: null,
+    name: "Anders Andersen (TESTDATA)",
+    phone: "+45 00 00 00 11",
+    email: "anders@example.invalid",
+    message: "Har I åbent på lørdag? Vil gerne se på en bil.",
+    vehicle: null,
+    attribution: { landing_page: "/kontakt", utm_source: null },
+    notes: [],
+    history: [{ from: null, to: "new", at: new Date(Date.now() - 2 * 3600_000).toISOString(), by: "System" }],
+  },
+  {
+    id: "demo-inq-2",
+    inquiryType: "test_drive",
+    status: "contacted",
+    createdAt: new Date(Date.now() - 30 * 3600_000).toISOString(),
+    assignedTo: "Demo Administrator (TESTDATA)",
+    followUpAt: null,
+    name: "Bettina Berg (TESTDATA)",
+    phone: "+45 00 00 00 12",
+    email: "bettina@example.invalid",
+    message: "Vil gerne prøvekøre i weekenden.",
+    vehicle: { make: "Volkswagen", model: "Golf", variant: "1.4 TSI", slug: "volkswagen-golf-demo", priceDkk: 189900 },
+    attribution: { landing_page: "/biler/volkswagen-golf-demo", utm_source: "google" },
+    notes: [{ id: "n1", author: "Demo Administrator (TESTDATA)", body: "Ringet – aftalt lørdag kl. 11.", createdAt: new Date(Date.now() - 25 * 3600_000).toISOString() }],
+    history: [
+      { from: null, to: "new", at: new Date(Date.now() - 30 * 3600_000).toISOString(), by: "System" },
+      { from: "new", to: "contacted", at: new Date(Date.now() - 25 * 3600_000).toISOString(), by: "Demo Administrator (TESTDATA)" },
+    ],
+  },
+  {
+    id: "demo-inq-3",
+    inquiryType: "finance",
+    status: "new",
+    createdAt: new Date(Date.now() - 5 * 3600_000).toISOString(),
+    assignedTo: null,
+    followUpAt: null,
+    name: "Carsten Carlsen (TESTDATA)",
+    phone: "+45 00 00 00 13",
+    email: "carsten@example.invalid",
+    message: "Hvad koster finansiering over 60 måneder ca.?",
+    vehicle: null,
+    attribution: { landing_page: "/finansiering", utm_source: null },
+    notes: [],
+    history: [{ from: null, to: "new", at: new Date(Date.now() - 5 * 3600_000).toISOString(), by: "System" }],
+  },
+  {
+    id: "demo-inq-4",
+    inquiryType: "rental",
+    status: "new",
+    createdAt: new Date(Date.now() - 1 * 3600_000).toISOString(),
+    assignedTo: null,
+    followUpAt: null,
+    name: "Ditte Dam (TESTDATA)",
+    phone: "+45 00 00 00 14",
+    email: "ditte@example.invalid",
+    message: "Jeg er interesseret i at leje: Volkswagen Caddy Cargo",
+    vehicle: null,
+    attribution: { landing_page: "/biludlejning/volkswagen-caddy-cargo-udlejning", utm_source: null },
+    notes: [],
+    history: [{ from: null, to: "new", at: new Date(Date.now() - 1 * 3600_000).toISOString(), by: "System" }],
+  },
+  {
+    id: "demo-inq-5",
+    inquiryType: "trade_in",
+    status: "won",
+    createdAt: new Date(Date.now() - 100 * 3600_000).toISOString(),
+    assignedTo: "Demo Administrator (TESTDATA)",
+    followUpAt: null,
+    name: "Erik Eriksen (TESTDATA)",
+    phone: "+45 00 00 00 15",
+    email: "erik@example.invalid",
+    message: null,
+    vehicle: { make: "Skoda", model: "Octavia", variant: "Combi", slug: "skoda-octavia-combi-udlejning", priceDkk: null },
+    attribution: { landing_page: "/biler/skoda-octavia-demo", utm_source: "facebook" },
+    notes: [],
+    history: [
+      { from: null, to: "new", at: new Date(Date.now() - 100 * 3600_000).toISOString(), by: "System" },
+      { from: "new", to: "won", at: new Date(Date.now() - 90 * 3600_000).toISOString(), by: "Demo Administrator (TESTDATA)" },
+    ],
+  },
+];
+
+export function demoInquiries(): AdminInquiryDetail[] {
+  if (!inquiries) inquiries = DEMO_INQUIRIES.map((i) => ({ ...i }));
+  return inquiries;
+}
+
+export function demoInquiryById(id: string): AdminInquiryDetail | undefined {
+  return demoInquiries().find((i) => i.id === id);
+}
+
+export function demoUpdateInquiry(id: string, patch: Partial<AdminInquiry>): void {
+  const inquiry = demoInquiryById(id);
+  if (inquiry) Object.assign(inquiry, patch);
 }

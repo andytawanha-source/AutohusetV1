@@ -4,13 +4,16 @@ import { vehicleSlug } from "@/lib/slug";
 import { useAdminAuth } from "./auth";
 import {
   demoDeleteVehicle,
+  demoInquiries,
+  demoInquiryById,
   demoLeadById,
   demoLeads,
   demoSaveVehicle,
+  demoUpdateInquiry,
   demoUpdateLead,
   demoVehicles,
 } from "./demoStore";
-import type { AdminLead, AdminLeadDetail, AdminLeadStatus, AdminVehicle } from "./types";
+import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminLeadStatus, AdminVehicle } from "./types";
 import type { RentalAvailability } from "@/features/vehicles/types";
 
 /* ============================ Biler ============================ */
@@ -614,6 +617,153 @@ export function useAddLeadNote() {
       if (error) throw new Error(error.message);
     },
     onSuccess: (_d, vars) => void queryClient.invalidateQueries({ queryKey: ["admin", "lead", vars.leadId] }),
+  });
+}
+
+/* ============================ Henvendelser (vehicle_inquiries) ============================ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapInquiry(row: any): AdminInquiry {
+  const snapshot = row.vehicle_snapshot ?? null;
+  return {
+    id: row.id,
+    inquiryType: row.inquiry_type,
+    status: row.status,
+    createdAt: row.created_at,
+    assignedTo: row.assigned_profile?.full_name ?? null,
+    followUpAt: row.follow_up_at,
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    message: row.message,
+    vehicle: snapshot
+      ? {
+          make: snapshot.make ?? null,
+          model: snapshot.model ?? null,
+          variant: snapshot.variant ?? null,
+          slug: snapshot.slug ?? null,
+          priceDkk: snapshot.price_dkk ?? null,
+        }
+      : null,
+  };
+}
+
+export function useAdminInquiries() {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "inquiries"],
+    enabled: !!user,
+    queryFn: async (): Promise<AdminInquiry[]> => {
+      if (!isSupabaseConfigured) return [...demoInquiries()];
+      const { data, error } = await getSupabase()
+        .from("vehicle_inquiries")
+        .select("*, assigned_profile:profiles!vehicle_inquiries_assigned_to_fkey(full_name)")
+        .eq("organization_id", user!.organizationId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapInquiry);
+    },
+  });
+}
+
+export function useAdminInquiryDetail(id: string | undefined) {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "inquiry", id],
+    enabled: !!user && !!id,
+    queryFn: async (): Promise<AdminInquiryDetail | null> => {
+      if (!isSupabaseConfigured) return demoInquiryById(id!) ?? null;
+      const { data: row, error } = await getSupabase()
+        .from("vehicle_inquiries")
+        .select(
+          "*, assigned_profile:profiles!vehicle_inquiries_assigned_to_fkey(full_name), vehicle_inquiry_notes(*, author:profiles(full_name)), vehicle_inquiry_status_history(*, changed_profile:profiles(full_name))"
+        )
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      const base = mapInquiry(row);
+      return {
+        ...base,
+        attribution: row.attribution ?? null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        notes: (row.vehicle_inquiry_notes ?? []).map((n: any) => ({
+          id: n.id,
+          author: n.author?.full_name ?? "Ukendt",
+          body: n.body,
+          createdAt: n.created_at,
+        })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        history: (row.vehicle_inquiry_status_history ?? []).map((h: any) => ({
+          from: h.from_status,
+          to: h.to_status,
+          at: h.created_at,
+          by: h.changed_profile?.full_name ?? "System",
+        })),
+      };
+    },
+  });
+}
+
+export function useUpdateInquiry() {
+  const { user } = useAdminAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      followUpAt,
+      assignToSelf,
+    }: {
+      id: string;
+      status?: AdminLeadStatus;
+      followUpAt?: string | null;
+      assignToSelf?: boolean;
+    }) => {
+      if (!isSupabaseConfigured) {
+        demoUpdateInquiry(id, {
+          ...(status ? { status } : {}),
+          ...(followUpAt !== undefined ? { followUpAt } : {}),
+          ...(assignToSelf ? { assignedTo: user!.name } : {}),
+        });
+        return;
+      }
+      const patch: Record<string, unknown> = {};
+      if (status) patch.status = status;
+      if (followUpAt !== undefined) patch.follow_up_at = followUpAt;
+      if (assignToSelf) patch.assigned_to = user!.id;
+      const { error } = await getSupabase().from("vehicle_inquiries").update(patch).eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "inquiries"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "inquiry", vars.id] });
+    },
+  });
+}
+
+export function useAddInquiryNote() {
+  const { user } = useAdminAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ inquiryId, body }: { inquiryId: string; body: string }) => {
+      if (!isSupabaseConfigured) {
+        demoInquiryById(inquiryId)?.notes.push({
+          id: `note-${Date.now()}`,
+          author: user!.name,
+          body,
+          createdAt: new Date().toISOString(),
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("vehicle_inquiry_notes").insert({
+        organization_id: user!.organizationId,
+        inquiry_id: inquiryId,
+        author_id: user!.id,
+        body,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_d, vars) => void queryClient.invalidateQueries({ queryKey: ["admin", "inquiry", vars.inquiryId] }),
   });
 }
 

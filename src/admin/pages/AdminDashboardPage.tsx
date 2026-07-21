@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { AlertTriangle, Car, CheckCircle2, Clock, FileEdit, KeyRound, MessageSquare, Plus, Tag } from "lucide-react";
-import { useAdminLeads, useAdminVehicles } from "../api";
-import { LEAD_STATUS_LABELS, type AdminLeadStatus } from "../types";
+import { useAdminInquiries, useAdminLeads, useAdminVehicles } from "../api";
+import { INQUIRY_TYPE_LABELS, LEAD_STATUS_LABELS, type AdminLeadStatus } from "../types";
 import { formatDateTime } from "@/lib/format";
 import { checkVehicleQuality } from "../vehicleQuality";
+
+const UNCONTACTED_SLA_HOURS = 24;
 
 function StatCard({ label, value, icon: Icon, to }: { label: string; value: number | string; icon: React.ElementType; to?: string }) {
   const content = (
@@ -23,14 +25,20 @@ function StatCard({ label, value, icon: Icon, to }: { label: string; value: numb
 export default function AdminDashboardPage() {
   const vehiclesQuery = useAdminVehicles();
   const leadsQuery = useAdminLeads();
+  const inquiriesQuery = useAdminInquiries();
   const vehicles = vehiclesQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
+  const inquiries = inquiriesQuery.data ?? [];
 
   const saleVehicles = vehicles.filter((v) => v.listingType === "sale");
   const rentalVehicles = vehicles.filter((v) => v.listingType === "rental");
   const byStatus = (status: string) => saleVehicles.filter((v) => v.status === status).length;
   const openLeads = leads.filter((l) => !["won", "lost", "archived", "rejected"].includes(l.status));
-  const newLeads = leads.filter((l) => l.status === "new");
+  const isUncontacted = (createdAt: string, status: string) =>
+    status === "new" && (Date.now() - new Date(createdAt).getTime()) / 3_600_000 >= UNCONTACTED_SLA_HOURS;
+  const uncontactedLeads = leads.filter((l) => isUncontacted(l.createdAt, l.status));
+  const uncontactedInquiries = inquiries.filter((i) => isUncontacted(i.createdAt, i.status));
+  const totalUncontacted = uncontactedLeads.length + uncontactedInquiries.length;
   const incompleteDrafts = [...saleVehicles, ...rentalVehicles].filter(
     (v) => v.status === "draft" && !checkVehicleQuality(v).ready
   );
@@ -42,6 +50,7 @@ export default function AdminDashboardPage() {
     acc[l.source] = (acc[l.source] ?? 0) + 1;
     return acc;
   }, {});
+  const newInquiriesCount = inquiries.filter((i) => i.status === "new").length;
 
   return (
     <div className="space-y-8">
@@ -59,12 +68,12 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {(newLeads.length > 0 || incompleteDrafts.length > 0) && (
+      {(totalUncontacted > 0 || incompleteDrafts.length > 0) && (
         <section aria-label="Handlinger der venter" className="space-y-2 rounded-xl bg-amber-50 p-4">
-          {newLeads.length > 0 && (
+          {totalUncontacted > 0 && (
             <Link to="/admin/leads" className="flex items-center gap-2 text-sm font-medium text-amber-900 hover:underline">
               <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
-              {newLeads.length} nye {newLeads.length === 1 ? "lead" : "leads"} mangler at blive kontaktet
+              {totalUncontacted} {totalUncontacted === 1 ? "lead er" : "leads er"} ikke kontaktet inden for {UNCONTACTED_SLA_HOURS} timer
             </Link>
           )}
           {incompleteDrafts.length > 0 && (
@@ -82,17 +91,17 @@ export default function AdminDashboardPage() {
         <StatCard label="Reserverede" value={byStatus("reserved")} icon={Clock} to="/admin/biler" />
         <StatCard label="Solgte" value={byStatus("sold")} icon={Tag} to="/admin/biler" />
         <StatCard label="Lejebiler" value={rentalVehicles.length} icon={KeyRound} to="/admin/lejebiler" />
-        <StatCard label="Nye leads" value={leadsByStatus["new"] ?? 0} icon={MessageSquare} to="/admin/leads" />
+        <StatCard label="Nye leads" value={(leadsByStatus["new"] ?? 0) + newInquiriesCount} icon={MessageSquare} to="/admin/leads" />
         <StatCard label="Åbne leads" value={openLeads.length} icon={CheckCircle2} to="/admin/leads" />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="dash-leads" className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
-          <h2 id="dash-leads" className="mb-4 font-display text-lg font-bold text-brand-primary">Seneste leads</h2>
+          <h2 id="dash-leads" className="mb-4 font-display text-lg font-bold text-brand-primary">Seneste "sælg din bil"-leads</h2>
           <ul className="divide-y divide-brand-ink/5">
             {leads.slice(0, 6).map((lead) => (
               <li key={lead.id}>
-                <Link to={`/admin/leads/${lead.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:bg-brand-ink/[0.02]">
+                <Link to={`/admin/leads/salg/${lead.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:bg-brand-ink/[0.02]">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {lead.vehicle?.make} {lead.vehicle?.model} · {lead.contact?.name}
@@ -109,6 +118,30 @@ export default function AdminDashboardPage() {
           </ul>
         </section>
 
+        <section aria-labelledby="dash-inquiries" className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
+          <h2 id="dash-inquiries" className="mb-4 font-display text-lg font-bold text-brand-primary">Seneste henvendelser</h2>
+          <ul className="divide-y divide-brand-ink/5">
+            {inquiries.slice(0, 6).map((inquiry) => (
+              <li key={inquiry.id}>
+                <Link to={`/admin/leads/henvendelse/${inquiry.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:bg-brand-ink/[0.02]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {INQUIRY_TYPE_LABELS[inquiry.inquiryType]} · {inquiry.name}
+                    </p>
+                    <p className="text-xs text-brand-ink/50">{formatDateTime(inquiry.createdAt)}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-brand-primary/10 px-2.5 py-1 text-xs font-medium text-brand-primary">
+                    {LEAD_STATUS_LABELS[inquiry.status]}
+                  </span>
+                </Link>
+              </li>
+            ))}
+            {inquiries.length === 0 && <li className="py-4 text-sm text-brand-ink/50">Ingen henvendelser endnu.</li>}
+          </ul>
+        </section>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="dash-status" className="space-y-6">
           <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
             <h2 id="dash-status" className="mb-4 font-display text-lg font-bold text-brand-primary">Leads fordelt på status</h2>

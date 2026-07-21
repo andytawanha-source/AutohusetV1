@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Car, FlaskConical, KeyRound, LayoutDashboard, LogOut, Menu, MessageSquare, Settings, Users, X } from "lucide-react";
 import { useAdminAuth } from "../auth";
+import { useAdminInquiries, useAdminLeads } from "../api";
 import { useBrand } from "@/app/BrandProvider";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/biler", label: "Biler til salg", icon: Car },
   { to: "/admin/lejebiler", label: "Lejebiler", icon: KeyRound },
-  { to: "/admin/leads", label: "Leads", icon: MessageSquare },
+  { to: "/admin/leads", label: "Leads", icon: MessageSquare, showLeadBadge: true },
   { to: "/admin/brugere", label: "Brugere", icon: Users, roles: ["dealer_admin" as const] },
   { to: "/admin/indstillinger", label: "Indstillinger", icon: Settings, roles: ["dealer_admin" as const] },
 ];
@@ -19,6 +20,10 @@ export function AdminLayout() {
   const brand = useBrand();
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
+  const { data: leads } = useAdminLeads();
+  const { data: inquiries } = useAdminInquiries();
+
+  const newLeadCount = (leads?.filter((l) => l.status === "new").length ?? 0) + (inquiries?.filter((i) => i.status === "new").length ?? 0);
 
   const items = NAV.filter((item) => !item.roles || hasRole(...item.roles));
 
@@ -38,7 +43,7 @@ export function AdminLayout() {
           </button>
         </div>
         <nav className="mt-2 space-y-1 px-3">
-          {items.map(({ to, label, icon: Icon, end }) => (
+          {items.map(({ to, label, icon: Icon, end, showLeadBadge }) => (
             <NavLink
               key={to}
               to={to}
@@ -52,6 +57,11 @@ export function AdminLayout() {
               }
             >
               <Icon className="h-4 w-4" aria-hidden /> {label}
+              {showLeadBadge && newLeadCount > 0 && (
+                <span className="ml-auto rounded-full bg-brand-accent px-2 py-0.5 text-xs font-bold text-brand-primary">
+                  {newLeadCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

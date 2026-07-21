@@ -3,25 +3,33 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { contactSchema, submitContactMessage, type ContactInput } from "@/features/inquiries/api";
+import { contactSchema, submitContactMessage, type ContactInput, type GeneralInquiryType } from "@/features/inquiries/api";
 import { useBrand } from "@/app/BrandProvider";
 
 const inputCls =
   "w-full rounded-md border border-brand-ink/15 bg-white px-3 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-brand-accent";
 
-export function ContactForm() {
+export function ContactForm({
+  inquiryType = "contact",
+  defaultMessage,
+}: {
+  /** Mærker henvendelsen korrekt i adminpanelets samlede leadindbakke. */
+  inquiryType?: GeneralInquiryType;
+  defaultMessage?: string;
+}) {
   const brand = useBrand();
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState } = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
+    defaultValues: { message: defaultMessage },
   });
 
   const onSubmit = handleSubmit(async (data) => {
     setServerError(null);
     try {
-      await submitContactMessage(data);
+      await submitContactMessage(data, inquiryType);
       setSubmitted(true);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Noget gik galt. Prøv igen.");

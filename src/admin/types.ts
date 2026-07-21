@@ -87,3 +87,60 @@ export interface AdminLeadDetail extends AdminLead {
   notes: Array<{ id: string; author: string; body: string; createdAt: string }>;
   history: Array<{ from: string | null; to: string; at: string; by: string }>;
 }
+
+/**
+ * Henvendelser fra vehicle_inquiries (kontakt/prøvetur/finansiering/leje/
+ * byttebil-klik). Holdes bevidst adskilt fra "leads" (sælg-din-bil), som har
+ * sit eget GDPR-tilpassede skema – men bruger samme statustaksonomi, så begge
+ * kan vises samlet i adminpanelets leadindbakke.
+ */
+export type InquiryType = "contact" | "test_drive" | "finance" | "trade_in" | "rental";
+
+export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
+  contact: "Kontakt",
+  test_drive: "Prøvetur",
+  finance: "Finansiering",
+  trade_in: "Byttebil (klik)",
+  rental: "Biludlejning",
+};
+
+export interface AdminInquiry {
+  id: string;
+  inquiryType: InquiryType;
+  status: AdminLeadStatus;
+  createdAt: string;
+  assignedTo: string | null;
+  followUpAt: string | null;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  message: string | null;
+  vehicle: { make: string | null; model: string | null; variant: string | null; slug: string | null; priceDkk: number | null } | null;
+}
+
+export interface AdminInquiryDetail extends AdminInquiry {
+  attribution: Record<string, unknown> | null;
+  notes: Array<{ id: string; author: string; body: string; createdAt: string }>;
+  history: Array<{ from: string | null; to: string; at: string; by: string }>;
+}
+
+/** Fælles rækkeform til den samlede leadindbakke, uanset kilde-tabel. */
+export type LeadSourceTable = "lead" | "inquiry";
+
+export interface UnifiedLeadRow {
+  sourceTable: LeadSourceTable;
+  id: string;
+  /** "sell_car" for leads-tabellen, ellers InquiryType for vehicle_inquiries. */
+  leadType: "sell_car" | InquiryType;
+  typeLabel: string;
+  reference: string;
+  status: AdminLeadStatus;
+  createdAt: string;
+  assignedTo: string | null;
+  followUpAt: string | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  vehicleLabel: string | null;
+  message: string | null;
+}

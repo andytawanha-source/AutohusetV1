@@ -81,7 +81,7 @@ export default function FinancingPage() {
       <div className="mt-10 grid gap-10 lg:grid-cols-2">
         <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-brand-ink/5 lg:p-8">
           <h2 className="mb-5 font-display text-xl font-bold text-brand-primary">Forespørg om finansiering</h2>
-          <ContactForm />
+          <ContactForm inquiryType="finance" />
         </div>
         <div className="text-sm leading-relaxed text-brand-ink/60">
           <h2 className="font-display text-lg font-bold text-brand-primary">Vigtigt om finansiering</h2>

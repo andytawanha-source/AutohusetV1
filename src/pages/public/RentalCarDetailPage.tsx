@@ -1,8 +1,9 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Fuel, Settings2, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Fuel, MessageSquare, Settings2, Users } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { getRentalCarBySlug } from "@/features/rentals/rentalData";
+import { ContactForm } from "@/components/shared/ContactForm";
 
 const ONE2MOVE_URL = "https://one2movebiludlejning.dk/";
 
@@ -51,6 +52,7 @@ export default function RentalCarDetailPage() {
           </ul>
         </div>
 
+        <div className="space-y-6">
         <div className="rounded-xl bg-brand-surface-warm/60 p-6 text-center">
           <p className="font-display text-3xl font-bold text-brand-primary">Fra {car.priceFrom} kr./dag</p>
           <p className="mt-1 text-sm text-brand-ink/60">Vejledende pris – se opdaterede priser og ledighed hos One2move</p>
@@ -69,6 +71,19 @@ export default function RentalCarDetailPage() {
             </a>
             .
           </p>
+        </div>
+
+        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-brand-ink/5">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-primary">
+            <MessageSquare className="h-5 w-5 text-brand-accent" aria-hidden /> Spørgsmål om udlejning?
+          </h2>
+          <p className="mt-1 text-sm text-brand-ink/60">
+            Skriv til os, hvis du har spørgsmål inden booking – vi videreformidler gerne kontakten til One2move.
+          </p>
+          <div className="mt-4">
+            <ContactForm inquiryType="rental" defaultMessage={`Jeg er interesseret i at leje: ${car.name}`} />
+          </div>
+        </div>
         </div>
       </div>
     </div>
