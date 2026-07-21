@@ -8,8 +8,10 @@ import { writeFileSync, mkdirSync } from "node:fs";
 
 const siteUrl = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 if (!siteUrl) {
-  console.error("Sæt SITE_URL for at generere sitemap (fx SITE_URL=https://autohusetvest.dk)");
-  process.exit(1);
+  // Ingen SITE_URL sat (fx lokal dev-build) – spring sitemap-generering over uden at fejle
+  // buildet, så "npm run build" altid kan køre trygt, også før domænet er sat op i Vercel.
+  console.warn("SITE_URL ikke sat – springer sitemap.xml-generering over (sæt SITE_URL i Vercel for at aktivere).");
+  process.exit(0);
 }
 
 const staticPaths = [

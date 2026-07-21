@@ -43,7 +43,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Seo jsonLd={jsonLd} />
+      <Seo jsonLd={jsonLd} image={media.heroDesktop} />
       <HeroSection />
       <PartnerLogos />
 

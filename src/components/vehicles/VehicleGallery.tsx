@@ -52,6 +52,9 @@ export function VehicleGallery({ images, title }: { images: VehicleImage[]; titl
           alt={current.altText}
           width={800}
           height={500}
+          decoding="async"
+          fetchPriority={index === 0 ? "high" : undefined}
+          loading={index === 0 ? undefined : "lazy"}
           className="aspect-[8/5] w-full animate-image-reveal object-cover"
         />
         {images.length > 1 && (
