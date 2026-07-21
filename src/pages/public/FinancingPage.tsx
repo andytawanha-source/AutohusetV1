@@ -46,10 +46,8 @@ export default function FinancingPage() {
       </ul>
 
       <div className="mt-10 grid gap-5 sm:grid-cols-2">
-        <a
-          href="https://www.autoconcept.dk/home"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to="/garanti"
           className="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5 transition-colors hover:ring-brand-primary/30"
         >
           <ShieldCheck className="h-7 w-7 shrink-0 text-brand-accent" aria-hidden />
@@ -57,10 +55,10 @@ export default function FinancingPage() {
             <span className="block font-semibold text-brand-primary">Bilgaranti via AutoConcept</span>
             <span className="mt-1 block text-sm text-brand-ink/70">
               Vi samarbejder med AutoConcept om garantier på vores brugte biler, så du er dækket mod
-              uventede reparationsudgifter efter købet.
+              uventede reparationsudgifter efter købet. Læs mere om garantien.
             </span>
           </span>
-        </a>
+        </Link>
         <a
           href="https://www.if.dk/"
           target="_blank"
