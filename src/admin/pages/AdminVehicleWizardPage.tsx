@@ -86,7 +86,7 @@ export function AdminVehicleWizardPage({ listingType: fixedListingType }: { list
   const { id } = useParams();
   const isNew = !id || id === "ny";
   const navigate = useNavigate();
-  const { data: vehicles } = useAdminVehicles();
+  const { data: vehicles, refetch: refetchVehicles } = useAdminVehicles();
   const saveMutation = useSaveVehicle();
   const statusMutation = useVehicleStatusMutation();
 
@@ -320,7 +320,7 @@ export function AdminVehicleWizardPage({ listingType: fixedListingType }: { list
                 vehicleId={vehicleId}
                 images={existing?.images ?? []}
                 altBase={`${form.make} ${form.model}`}
-                onChanged={() => void 0}
+                onChanged={() => void refetchVehicles()}
               />
             ) : (
               <p className="text-sm text-brand-ink/50">Gennemfør trin 1 for at oprette kladden, så billeder kan tilføjes.</p>
