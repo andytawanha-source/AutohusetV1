@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 
 const NAV_ITEMS = [
   { to: "/", label: "Forside", end: true },
-  { to: "/biler", label: "Biler" },
+  { to: "/biler", label: "Biler til salg" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
   { to: "/finansiering", label: "Finansiering" },
   { to: "/garanti", label: "Garanti" },

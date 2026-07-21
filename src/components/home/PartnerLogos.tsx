@@ -53,12 +53,12 @@ export function PartnerLogos() {
                 href={partner.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-16 w-36 items-center justify-center rounded-lg px-4 py-2 transition-colors hover:bg-brand-surface-warm/40"
+                className="flex h-24 w-48 items-center justify-center rounded-lg px-4 py-2 transition-colors hover:bg-brand-surface-warm/40"
               >
                 <img
                   src={partner.logoSrc}
                   alt={partner.name}
-                  className="max-h-11 max-w-full object-contain"
+                  className="max-h-20 max-w-full object-contain"
                 />
               </a>
             ) : (
