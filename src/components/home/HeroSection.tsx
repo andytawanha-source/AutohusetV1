@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowRight, Car, Tag } from "lucide-react";
 import { useBrand } from "@/app/BrandProvider";
 import { useInventory, getFilterOptions } from "@/features/vehicles/api";
@@ -7,6 +8,7 @@ import { applyFilters, filtersToSearchParams, type VehicleFilters } from "@/feat
 import { normalizePlate, isValidPlate } from "@/lib/plate";
 import { track } from "@/features/tracking/track";
 import { cn } from "@/lib/utils";
+import { getBrandMedia } from "@/config/brandMedia";
 
 const selectCls =
   "w-full rounded-md border border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white backdrop-blur placeholder:text-white/50 focus-visible:ring-2 focus-visible:ring-brand-accent [&>option]:text-brand-ink";
@@ -15,6 +17,7 @@ type Mode = "buy" | "sell";
 
 export function HeroSection() {
   const brand = useBrand();
+  const media = getBrandMedia(brand.key);
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("buy");
 
@@ -57,12 +60,25 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-brand-primary text-white" aria-label="Find eller sælg din bil">
-      {/* Hero-baggrundsbillede (public/hero.jpg) med kongeblåt overlay for læsbarhed */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero.jpg')" }}
-      />
+      {/* Preload af hero-billedet, så LCP ikke venter på at CSS/JS opdager det */}
+      <Helmet>
+        <link rel="preload" as="image" href={media.heroDesktop} media="(min-width: 1024px)" />
+        <link rel="preload" as="image" href={media.heroMobile} media="(max-width: 1023px)" />
+      </Helmet>
+
+      {/* Hero-baggrundsbillede med separat desktop-/mobilcrop og kongeblåt overlay for læsbarhed */}
+      <picture aria-hidden className="absolute inset-0">
+        <source media="(min-width: 1024px)" srcSet={media.heroDesktop} width={2400} height={1350} />
+        <img
+          src={media.heroMobile}
+          alt=""
+          width={1200}
+          height={1600}
+          fetchPriority="high"
+          decoding="async"
+          className="h-full w-full object-cover object-[80%_50%]"
+        />
+      </picture>
       <div
         aria-hidden
         className="absolute inset-0"

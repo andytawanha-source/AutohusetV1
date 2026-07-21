@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Repeat } from "lucide-react";
 import { inquirySchema, submitVehicleInquiry, type InquiryInput } from "@/features/inquiries/api";
 import type { Vehicle } from "@/features/vehicles/types";
 import { useBrand } from "@/app/BrandProvider";
 import { track } from "@/features/tracking/track";
 import { cn } from "@/lib/utils";
+import { TradeInModal } from "./TradeInModal";
 
 const INQUIRY_LABELS: Record<InquiryInput["inquiryType"], string> = {
   contact: "Kontakt os om bilen",
@@ -29,6 +30,7 @@ export function VehicleInquiryForm({
   const brand = useBrand();
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showTradeInModal, setShowTradeInModal] = useState(false);
 
   const form = useForm<InquiryInput>({
     resolver: zodResolver(inquirySchema),
@@ -86,6 +88,28 @@ export function VehicleInquiryForm({
         </div>
       </fieldset>
 
+      {inquiryType === "trade_in" ? (
+        <div className="rounded-xl bg-brand-surface-warm/40 p-5 text-center">
+          <Repeat className="mx-auto h-8 w-8 text-brand-accent" aria-hidden />
+          <h3 className="mt-2 font-display text-base font-bold text-brand-primary">Hvad er din bil værd?</h3>
+          <p className="mt-1 text-sm text-brand-ink/70">
+            Indtast din nummerplade, svar på et par spørgsmål om bilens stand, og få et foreløbigt skøn med det
+            samme. Vi vender bagefter tilbage med det endelige, uforpligtende bud – telefonisk eller på mail.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              track("start_sell_car_cta", { vehicle_id: vehicle.id, source: "vehicle_detail_inquiry_form" });
+              setShowTradeInModal(true);
+            }}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-3 font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
+          >
+            <Repeat className="h-4 w-4" aria-hidden /> Start byttebilvurdering
+          </button>
+          {showTradeInModal && <TradeInModal vehicle={vehicle} onClose={() => setShowTradeInModal(false)} />}
+        </div>
+      ) : (
+        <>
       <div>
         <label htmlFor="inq-name" className="mb-1 block text-sm font-medium">Navn *</label>
         <input id="inq-name" autoComplete="name" className={inputCls} {...register("name")}
@@ -139,6 +163,8 @@ export function VehicleInquiryForm({
         {formState.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Send forespørgsel
       </button>
+        </>
+      )}
     </form>
   );
 }

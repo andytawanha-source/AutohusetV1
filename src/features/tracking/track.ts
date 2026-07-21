@@ -14,6 +14,7 @@ export type TrackingEvent =
   | "start_vehicle_inquiry"
   | "submit_vehicle_inquiry"
   | "start_sell_car"
+  | "start_sell_car_cta"
   | "plate_lookup_started"
   | "plate_lookup_success"
   | "plate_lookup_failed"

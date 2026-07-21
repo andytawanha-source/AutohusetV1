@@ -1,13 +1,13 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Din bil", "Bekræft", "Stand", "Billeder", "Kontakt", "Send"];
+const DEFAULT_STEPS = ["Din bil", "Bekræft", "Stand", "Billeder", "Kontakt", "Send"];
 
-export function WizardProgress({ current }: { current: number }) {
+export function WizardProgress({ current, steps = DEFAULT_STEPS }: { current: number; steps?: string[] }) {
   return (
     <nav aria-label="Trin i salgsvurderingen">
       <ol className="flex items-center gap-1 sm:gap-2">
-        {STEPS.map((label, i) => {
+        {steps.map((label, i) => {
           const done = i < current;
           const active = i === current;
           return (
@@ -37,7 +37,7 @@ export function WizardProgress({ current }: { current: number }) {
         })}
       </ol>
       <p className="mt-2 text-center text-sm text-brand-ink/60 sm:hidden">
-        Trin {current + 1} af {STEPS.length}: {STEPS[current]}
+        Trin {current + 1} af {steps.length}: {steps[current]}
       </p>
     </nav>
   );

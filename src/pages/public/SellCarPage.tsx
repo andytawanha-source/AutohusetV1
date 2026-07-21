@@ -2,9 +2,11 @@ import { Clock, Lock, ShieldCheck } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { SellCarWizard } from "@/components/sell/SellCarWizard";
 import { useBrand } from "@/app/BrandProvider";
+import { getBrandMedia } from "@/config/brandMedia";
 
 export default function SellCarPage() {
   const brand = useBrand();
+  const media = getBrandMedia(brand.key);
   return (
     <div className="container py-10 lg:py-14">
       <Seo
@@ -16,6 +18,15 @@ export default function SellCarPage() {
         <p className="mt-2 text-brand-ink/70">
           Få et uforpligtende tilbud på under 2 minutter – uden annoncer, fremvisninger og usikre købere.
         </p>
+        <img
+          src={media.sellCarInspection.src}
+          width={media.sellCarInspection.width}
+          height={media.sellCarInspection.height}
+          alt={media.sellCarInspection.alt}
+          loading="lazy"
+          decoding="async"
+          className="mx-auto mt-6 aspect-[4/3] w-full max-w-sm rounded-xl object-cover shadow-sm ring-1 ring-brand-ink/5"
+        />
       </div>
 
       <SellCarWizard />

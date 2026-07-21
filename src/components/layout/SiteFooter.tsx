@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { useBrand } from "@/app/BrandProvider";
+import { Logo } from "./Logo";
 
 const LEGAL_LINKS = [
   { to: "/privatlivspolitik", label: "Privatlivspolitik" },
@@ -14,8 +15,7 @@ const LEGAL_LINKS = [
 ];
 
 const NAV_LINKS = [
-  { to: "/biler", label: "Biler til salg" },
-  { to: "/solgte-biler", label: "Solgte biler" },
+  { to: "/biler", label: "Biler" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
   { to: "/finansiering", label: "Finansiering" },
   { to: "/om-os", label: "Om os" },
@@ -29,7 +29,7 @@ export function SiteFooter() {
     <footer className="bg-brand-primary text-white">
       <div className="container grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="font-display text-lg font-bold">{brand.name}</p>
+          <Logo className="text-white" />
           <address className="mt-3 space-y-2 text-sm not-italic text-white/80">
             <p>{brand.contact.legalName}</p>
             <p>CVR: {brand.contact.cvr}</p>

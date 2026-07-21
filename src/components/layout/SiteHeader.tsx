@@ -3,10 +3,11 @@ import { Link, NavLink } from "react-router-dom";
 import { Menu, Phone, X } from "lucide-react";
 import { useBrand } from "@/app/BrandProvider";
 import { cn } from "@/lib/utils";
+import { Logo } from "./Logo";
 
 const NAV_ITEMS = [
   { to: "/", label: "Forside", end: true },
-  { to: "/biler", label: "Biler til salg" },
+  { to: "/biler", label: "Biler" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
   { to: "/finansiering", label: "Finansiering" },
   { to: "/om-os", label: "Om os" },
@@ -41,8 +42,8 @@ export function SiteHeader() {
       )}
     >
       <div className="container flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="font-display text-xl font-bold uppercase tracking-wider" aria-label={`${brand.name} – forside`}>
-          {brand.name}
+        <Link to="/" aria-label={`${brand.name} – forside`}>
+          <Logo />
         </Link>
 
         <nav aria-label="Hovednavigation" className="hidden items-center gap-1 lg:flex">

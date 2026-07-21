@@ -3,18 +3,31 @@ import { BadgeCheck, Banknote, FileText, HandCoins } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { ContactForm } from "@/components/shared/ContactForm";
+import { getBrandMedia } from "@/config/brandMedia";
 
 export default function FinancingPage() {
   const brand = useBrand();
+  const media = getBrandMedia(brand.key);
   return (
     <div className="container py-10 lg:py-14">
       <Seo title="Finansiering" description={`Fleksibel bilfinansiering hos ${brand.name}. Få svar på din ansøgning – ofte samme dag.`} />
-      <div className="max-w-2xl">
-        <h1 className="font-display text-3xl font-bold text-brand-primary lg:text-4xl">Finansiering</h1>
-        <p className="mt-3 leading-relaxed text-brand-ink/70">
-          Hos {brand.name} hjælper vi dig med at finde en finansieringsløsning, der passer til din økonomi.
-          Vi samarbejder med anerkendte finansieringspartnere og klarer papirarbejdet for dig – ofte med svar samme dag.
-        </p>
+      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-brand-primary lg:text-4xl">Finansiering</h1>
+          <p className="mt-3 leading-relaxed text-brand-ink/70">
+            Hos {brand.name} hjælper vi dig med at finde en finansieringsløsning, der passer til din økonomi.
+            Vi samarbejder med anerkendte finansieringspartnere og klarer papirarbejdet for dig – ofte med svar samme dag.
+          </p>
+        </div>
+        <img
+          src={media.financeConsultation.src}
+          width={media.financeConsultation.width}
+          height={media.financeConsultation.height}
+          alt={media.financeConsultation.alt}
+          loading="lazy"
+          decoding="async"
+          className="aspect-[4/3] w-full rounded-2xl object-cover shadow-sm ring-1 ring-brand-ink/5"
+        />
       </div>
 
       <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

@@ -22,12 +22,12 @@ export const autohusetVest: BrandConfig = {
     body: "'Inter'",
   },
   contact: {
-    legalName: "[AUTOHUSET VEST JURIDISK NAVN]",
-    cvr: "[AUTOHUSET VEST CVR]",
-    address: "[AUTOHUSET VEST ADRESSE]",
-    phone: "[AUTOHUSET VEST TELEFON]",
-    email: "[AUTOHUSET VEST E-MAIL]",
-    leadEmail: "[AUTOHUSET VEST LEAD-E-MAIL]",
+    legalName: "Autohuset Vest ApS",
+    cvr: "[AUTOHUSET VEST CVR]", // TODO: mangler stadig – bekræft CVR-nummeret
+    address: "Islevsdalsvej 200, 2610 Rødovre",
+    phone: "+45 31 54 20 45",
+    email: "[AUTOHUSET VEST E-MAIL]", // TODO: mangler stadig
+    leadEmail: "[AUTOHUSET VEST LEAD-E-MAIL]", // TODO: mangler stadig
   },
   openingHours: [
     { label: "Mandag–fredag", hours: "09:00–17:30" },

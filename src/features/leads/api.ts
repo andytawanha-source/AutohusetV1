@@ -58,6 +58,10 @@ export async function submitSellCarLead(
     },
     attribution: getAttribution() ?? {},
     photos: state.photos.map((p) => ({ category: p.category, fileName: p.file.name, contentType: p.file.type })),
+    // "Byt din bil"-kontekst: hvilken bil på lageret henvendelsen udspringer fra, og det
+    // automatisk beregnede skøn, der blev vist for brugeren (IKKE et bindende tilbud).
+    interestVehicle: state.interestVehicle ?? null,
+    estimate: state.estimate ?? null,
   };
 
   if (!isSupabaseConfigured) {

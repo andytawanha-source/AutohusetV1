@@ -101,6 +101,22 @@ export const PHOTO_CATEGORIES: Array<{ key: LeadPhoto["category"]; label: string
   { key: "extra", label: "Ekstra billeder" },
 ];
 
+export interface TradeInEstimate {
+  lowDkk: number;
+  midDkk: number;
+  highDkk: number;
+  sampleSize: number;
+  basis: string;
+}
+
+/** Kontekst når byttebilvurderingen startes fra en konkret bils detaljeside ("Byt din bil"). */
+export interface InterestVehicleRef {
+  id: string;
+  label: string; // fx "Volkswagen ID.4 Pro Performance"
+  priceDkk: number | null;
+  slug: string;
+}
+
 export interface SellCarState {
   plate?: PlateStepInput;
   lookup?: NormalizedVehicleLookupResult | null; // null = manuel indtastning valgt
@@ -108,4 +124,8 @@ export interface SellCarState {
   condition?: ConditionStepInput;
   photos: LeadPhoto[];
   contact?: ContactStepInput;
+  /** Kun udfyldt når vurderingen startes som "Byt din bil" fra en bils detaljeside. */
+  interestVehicle?: InterestVehicleRef;
+  /** Automatisk beregnet skøn – vises for brugeren og gemmes som reference til sælgeren. */
+  estimate?: TradeInEstimate;
 }

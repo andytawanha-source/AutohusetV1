@@ -3,10 +3,12 @@ import { ArrowRight, BadgeCheck, Banknote, Clock, HandCoins, MapPin, ShieldCheck
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { HeroSection } from "@/components/home/HeroSection";
+import { PartnerLogos } from "@/components/home/PartnerLogos";
 import { AnimatedCounter } from "@/components/home/AnimatedCounter";
 import { FaqAccordion } from "@/components/home/FaqAccordion";
 import { VehicleGrid, VehicleGridSkeleton } from "@/components/vehicles/VehicleGrid";
 import { useInventory } from "@/features/vehicles/api";
+import { getBrandMedia } from "@/config/brandMedia";
 
 const PROCESS_STEPS = [
   { title: "Indtast nummerplade", text: "Skriv din nummerplade og kilometerstand – vi henter bilens oplysninger automatisk." },
@@ -24,6 +26,7 @@ const FAQ_ITEMS = [
 
 export default function HomePage() {
   const brand = useBrand();
+  const media = getBrandMedia(brand.key);
   const inventory = useInventory();
   const available = (inventory.data ?? []).filter((v) => v.status === "published" || v.status === "reserved");
   const latest = available.slice(0, 3);
@@ -42,6 +45,7 @@ export default function HomePage() {
     <>
       <Seo jsonLd={jsonLd} />
       <HeroSection />
+      <PartnerLogos />
 
       {/* Nøgletal */}
       <section className="border-b border-brand-ink/5 bg-white py-8" aria-label="Nøgletal">
@@ -91,9 +95,26 @@ export default function HomePage() {
       {/* Sådan sælger du din bil */}
       <section className="bg-brand-primary py-16 text-white" aria-labelledby="process-heading">
         <div className="container">
-          <h2 id="process-heading" className="font-display text-2xl font-bold lg:text-3xl">Sådan sælger du din bil</h2>
-          <p className="mt-2 max-w-xl text-white/70">Fra nummerplade til penge på kontoen – uden annoncer, fremvisninger og usikre købere.</p>
-          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            <div>
+              <h2 id="process-heading" className="font-display text-2xl font-bold lg:text-3xl">Sådan sælger du din bil</h2>
+              <p className="mt-2 max-w-xl text-white/70">Fra nummerplade til penge på kontoen – uden annoncer, fremvisninger og usikre købere.</p>
+              <Link to="/saelg-din-bil"
+                className="mt-6 hidden items-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none lg:inline-flex">
+                Start din vurdering <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+            <img
+              src={media.sellCarInspection.src}
+              width={media.sellCarInspection.width}
+              height={media.sellCarInspection.height}
+              alt={media.sellCarInspection.alt}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/3] w-full rounded-2xl object-cover ring-1 ring-white/10"
+            />
+          </div>
+          <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {PROCESS_STEPS.map((step, i) => (
               <li key={step.title} className="rounded-xl bg-white/5 p-5 ring-1 ring-white/10">
                 <p aria-hidden className="font-display text-3xl font-bold text-brand-accent">{i + 1}</p>
@@ -103,7 +124,7 @@ export default function HomePage() {
             ))}
           </ol>
           <Link to="/saelg-din-bil"
-            className="mt-8 inline-flex items-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none">
+            className="mt-8 inline-flex items-center gap-2 rounded-md bg-white ring-1 ring-brand-primary/20 shadow-sm px-6 py-3 font-bold text-brand-primary transition-transform hover:scale-[1.02] motion-reduce:transform-none lg:hidden">
             Start din vurdering <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
@@ -151,7 +172,7 @@ export default function HomePage() {
 
       {/* Finansiering */}
       <section className="py-14" aria-labelledby="finance-heading">
-        <div className="container grid items-center gap-8 lg:grid-cols-2">
+        <div className="container grid items-center gap-8 lg:grid-cols-[1fr_1fr_0.9fr] lg:gap-10">
           <div>
             <h2 id="finance-heading" className="font-display text-2xl font-bold text-brand-primary lg:text-3xl">
               Finansiering, der passer til dig
@@ -167,6 +188,15 @@ export default function HomePage() {
               Finansieringseksempler er vejledende og forudsætter kreditgodkendelse. <Link to="/finansieringsforbehold" className="underline">Se forbehold</Link>.
             </p>
           </div>
+          <img
+            src={media.financeConsultation.src}
+            width={media.financeConsultation.width}
+            height={media.financeConsultation.height}
+            alt={media.financeConsultation.alt}
+            loading="lazy"
+            decoding="async"
+            className="aspect-[4/3] w-full rounded-2xl object-cover shadow-sm ring-1 ring-brand-ink/5"
+          />
           <ul className="space-y-3">
             {[
               { icon: HandCoins, text: "Lav udbetaling og fleksibel løbetid" },
@@ -200,22 +230,34 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="rounded-xl bg-white/5 p-6 ring-1 ring-white/10">
-            <h3 className="flex items-center gap-2 font-display text-lg font-bold">
-              <MapPin className="h-5 w-5 text-brand-accent" aria-hidden /> Find os
-            </h3>
-            <p className="mt-2 text-white/75">{brand.contact.address}</p>
-            <ul className="mt-4 space-y-1 text-sm text-white/75">
-              {brand.openingHours.map((row) => (
-                <li key={row.label} className="flex justify-between gap-6">
-                  <span>{row.label}</span>
-                  <span>{row.hours}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 rounded-md bg-white/10 p-3 text-xs text-white/60">
-              Kortvisning kræver samtykke til funktionelle cookies og aktiveres via cookieindstillingerne (Fase 5).
-            </p>
+          <div className="space-y-4">
+            <img
+              src={media.showroom.src}
+              width={media.showroom.width}
+              height={media.showroom.height}
+              alt={media.showroom.alt}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[3/2] w-full rounded-2xl object-cover ring-1 ring-white/10"
+            />
+            <p className="-mt-2 text-xs text-white/40">Illustrativt foto</p>
+            <div className="rounded-xl bg-white/5 p-6 ring-1 ring-white/10">
+              <h3 className="flex items-center gap-2 font-display text-lg font-bold">
+                <MapPin className="h-5 w-5 text-brand-accent" aria-hidden /> Find os
+              </h3>
+              <p className="mt-2 text-white/75">{brand.contact.address}</p>
+              <ul className="mt-4 space-y-1 text-sm text-white/75">
+                {brand.openingHours.map((row) => (
+                  <li key={row.label} className="flex justify-between gap-6">
+                    <span>{row.label}</span>
+                    <span>{row.hours}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 rounded-md bg-white/10 p-3 text-xs text-white/60">
+                Kortvisning kræver samtykke til funktionelle cookies og aktiveres via cookieindstillingerne (Fase 5).
+              </p>
+            </div>
           </div>
         </div>
       </section>
