@@ -23,11 +23,11 @@ export const autohusetVest: BrandConfig = {
   },
   contact: {
     legalName: "Autohuset Vest ApS",
-    cvr: "[AUTOHUSET VEST CVR]", // TODO: mangler stadig – bekræft CVR-nummeret
+    cvr: "44769247",
     address: "Islevsdalsvej 200, 2610 Rødovre",
     phone: "+45 31 54 20 45",
-    email: "[AUTOHUSET VEST E-MAIL]", // TODO: mangler stadig
-    leadEmail: "[AUTOHUSET VEST LEAD-E-MAIL]", // TODO: mangler stadig
+    email: "udvikler@autohusetvest.dk", // MIDLERTIDIG – erstat med kundens rigtige mail
+    leadEmail: "udvikler@autohusetvest.dk", // MIDLERTIDIG – erstat med kundens lead-mail
   },
   openingHours: [
     { label: "Mandag–fredag", hours: "09:00–17:30" },
