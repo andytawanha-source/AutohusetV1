@@ -62,6 +62,7 @@ function mapRow(row: any): Vehicle {
     soldAt: row.sold_at,
     createdAt: row.created_at,
     images,
+    listingType: row.listing_type ?? "sale",
   };
 }
 
@@ -91,11 +92,12 @@ async function fetchAllPublicVehicles(): Promise<Vehicle[]> {
     "price_dkk, monthly_price_dkk, fuel_type, transmission, body_type, color, doors, seats, " +
     "power_hp, engine, battery_kwh, range_km, consumption, tax_period_dkk, registration_number, " +
     "show_registration_number, description, equipment, badges, is_featured, seo_title, " +
-    "seo_description, slug, status, publish_at, sold_at, created_at";
+    "seo_description, slug, status, publish_at, sold_at, created_at, listing_type";
   const { data, error } = await getSupabase()
     .from("vehicles")
     .select(`${PUBLIC_COLUMNS}, vehicle_images(*)`)
     .eq("organization_id", orgId)
+    .eq("listing_type", "sale")
     .in("status", ["published", "reserved", "sold"])
     .is("deleted_at", null)
     .order("created_at", { ascending: false });

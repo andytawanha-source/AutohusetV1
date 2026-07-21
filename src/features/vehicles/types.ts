@@ -1,6 +1,35 @@
 export type VehicleStatus = "draft" | "scheduled" | "published" | "reserved" | "sold" | "archived";
 export type FuelType = "benzin" | "diesel" | "el" | "hybrid" | "plugin_hybrid" | "andet";
 export type Transmission = "manuel" | "automatisk";
+export type ListingType = "sale" | "rental";
+
+/** Salgsspecifikke felter (kun relevante når listingType === "sale"). */
+export interface SaleDetails {
+  downPaymentDkk: number | null;
+  deliveryCostDkk: number | null;
+  warrantyText: string | null;
+  serviceHistoryText: string | null;
+  lastServiceDate: string | null;
+  ownerCount: number | null;
+}
+
+export type RentalAvailability = "available" | "booked" | "maintenance";
+
+/** Udlejningsspecifikke felter (kun relevante når listingType === "rental"). */
+export interface RentalDetails {
+  pricePerDayDkk: number | null;
+  pricePerWeekDkk: number | null;
+  pricePerMonthDkk: number | null;
+  depositDkk: number | null;
+  includedKmPerDay: number | null;
+  extraKmPriceDkk: number | null;
+  minAge: number | null;
+  licenseRequirement: string | null;
+  availabilityStatus: RentalAvailability;
+  pickupLocation: string | null;
+  insuranceInfo: string | null;
+  extraFeesText: string | null;
+}
 
 export interface VehicleImage {
   id: string;
@@ -46,6 +75,7 @@ export interface Vehicle {
   soldAt: string | null;
   createdAt: string;
   images: VehicleImage[];
+  listingType: ListingType;
 }
 
 export const FUEL_LABELS: Record<FuelType, string> = {

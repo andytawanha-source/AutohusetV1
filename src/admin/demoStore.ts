@@ -11,7 +11,7 @@ let vehicles: AdminVehicle[] | null = null;
 let leads: AdminLeadDetail[] | null = null;
 
 function toAdminVehicle(v: Vehicle): AdminVehicle {
-  return { ...v, internalNotes: null, vin: null, publishAt: null, updatedAt: v.createdAt };
+  return { ...v, internalNotes: null, vin: null, publishAt: null, updatedAt: v.createdAt, saleDetails: null, rentalDetails: null };
 }
 
 export function demoVehicles(): AdminVehicle[] {
@@ -34,16 +34,82 @@ export function demoVehicles(): AdminVehicle[] {
       internalNotes: "TESTDATA: Kladde – afventer billeder.",
       images: [],
     });
+    // To lejebiler, så /admin/lejebiler har testdata at vise
+    vehicles.push({
+      ...toAdminVehicle(getDemoVehicles()[0]),
+      id: "demo-rental-1",
+      make: "Volkswagen",
+      model: "Caddy",
+      variant: "Cargo",
+      slug: "volkswagen-caddy-cargo-udlejning",
+      status: "published",
+      listingType: "rental",
+      priceDkk: null,
+      monthlyPriceDkk: null,
+      mileageKm: 38000,
+      modelYear: 2022,
+      badges: [],
+      isFeatured: false,
+      internalNotes: "TESTDATA: Lejebil.",
+      rentalDetails: {
+        pricePerDayDkk: 549,
+        pricePerWeekDkk: 2900,
+        pricePerMonthDkk: 8900,
+        depositDkk: 3000,
+        includedKmPerDay: 150,
+        extraKmPriceDkk: 2.5,
+        minAge: 21,
+        licenseRequirement: "Kategori B",
+        availabilityStatus: "available",
+        pickupLocation: "Islevsdalsvej 200, 2610 Rødovre",
+        insuranceInfo: "Fuld kaskoforsikring inkluderet",
+        extraFeesText: "Rengøringsgebyr 250 kr. ved aflevering uden rengøring.",
+      },
+    });
+    vehicles.push({
+      ...toAdminVehicle(getDemoVehicles()[1]),
+      id: "demo-rental-2",
+      make: "Skoda",
+      model: "Octavia",
+      variant: "Combi",
+      slug: "skoda-octavia-combi-udlejning",
+      status: "published",
+      listingType: "rental",
+      priceDkk: null,
+      monthlyPriceDkk: null,
+      mileageKm: 21000,
+      modelYear: 2023,
+      badges: [],
+      isFeatured: false,
+      internalNotes: "TESTDATA: Lejebil, aktuelt udlejet.",
+      rentalDetails: {
+        pricePerDayDkk: 449,
+        pricePerWeekDkk: 2400,
+        pricePerMonthDkk: 7200,
+        depositDkk: 3000,
+        includedKmPerDay: 150,
+        extraKmPriceDkk: 2,
+        minAge: 23,
+        licenseRequirement: "Kategori B",
+        availabilityStatus: "booked",
+        pickupLocation: "Islevsdalsvej 200, 2610 Rødovre",
+        insuranceInfo: "Fuld kaskoforsikring inkluderet",
+        extraFeesText: null,
+      },
+    });
   }
   return vehicles;
 }
 
 export function demoSaveVehicle(vehicle: AdminVehicle): AdminVehicle {
   const list = demoVehicles();
-  const idx = list.findIndex((v) => v.id === vehicle.id);
-  const saved = { ...vehicle, updatedAt: new Date().toISOString() };
+  const idx = list.findIndex((v) => v.id && v.id === vehicle.id);
+  const saved: AdminVehicle =
+    idx >= 0
+      ? { ...vehicle, updatedAt: new Date().toISOString() }
+      : { ...vehicle, id: `demo-new-${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   if (idx >= 0) list[idx] = saved;
-  else list.unshift({ ...saved, id: `demo-new-${Date.now()}`, createdAt: new Date().toISOString() });
+  else list.unshift(saved);
   return saved;
 }
 

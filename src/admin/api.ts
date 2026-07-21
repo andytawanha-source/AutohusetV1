@@ -11,11 +11,19 @@ import {
   demoVehicles,
 } from "./demoStore";
 import type { AdminLead, AdminLeadDetail, AdminLeadStatus, AdminVehicle } from "./types";
+import type { RentalAvailability } from "@/features/vehicles/types";
 
 /* ============================ Biler ============================ */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function first(x: any): any {
+  return Array.isArray(x) ? x[0] ?? null : x ?? null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapAdminVehicle(row: any): AdminVehicle {
+  const sale = first(row.sale_details);
+  const rental = first(row.rental_details);
   return {
     id: row.id,
     organizationId: row.organization_id,
@@ -66,22 +74,54 @@ function mapAdminVehicle(row: any): AdminVehicle {
     vin: row.vin,
     publishAt: row.publish_at,
     updatedAt: row.updated_at,
+    listingType: row.listing_type ?? "sale",
+    saleDetails: sale
+      ? {
+          downPaymentDkk: sale.down_payment_dkk,
+          deliveryCostDkk: sale.delivery_cost_dkk,
+          warrantyText: sale.warranty_text,
+          serviceHistoryText: sale.service_history_text,
+          lastServiceDate: sale.last_service_date,
+          ownerCount: sale.owner_count,
+        }
+      : null,
+    rentalDetails: rental
+      ? {
+          pricePerDayDkk: rental.price_per_day_dkk,
+          pricePerWeekDkk: rental.price_per_week_dkk,
+          pricePerMonthDkk: rental.price_per_month_dkk,
+          depositDkk: rental.deposit_dkk,
+          includedKmPerDay: rental.included_km_per_day,
+          extraKmPriceDkk: rental.extra_km_price_dkk,
+          minAge: rental.min_age,
+          licenseRequirement: rental.license_requirement,
+          availabilityStatus: rental.availability_status ?? "available",
+          pickupLocation: rental.pickup_location,
+          insuranceInfo: rental.insurance_info,
+          extraFeesText: rental.extra_fees_text,
+        }
+      : null,
   };
 }
 
-export function useAdminVehicles() {
+export function useAdminVehicles(listingType?: "sale" | "rental") {
   const { user } = useAdminAuth();
   return useQuery({
-    queryKey: ["admin", "vehicles"],
+    queryKey: ["admin", "vehicles", listingType ?? "all"],
     enabled: !!user,
     queryFn: async (): Promise<AdminVehicle[]> => {
-      if (!isSupabaseConfigured) return [...demoVehicles()];
-      const { data, error } = await getSupabase()
+      if (!isSupabaseConfigured) {
+        const all = [...demoVehicles()];
+        return listingType ? all.filter((v) => v.listingType === listingType) : all;
+      }
+      let query = getSupabase()
         .from("vehicles")
-        .select("*, vehicle_images(*)")
+        .select("*, vehicle_images(*), sale_details(*), rental_details(*)")
         .eq("organization_id", user!.organizationId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
+      if (listingType) query = query.eq("listing_type", listingType);
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map(mapAdminVehicle);
     },
@@ -90,6 +130,7 @@ export function useAdminVehicles() {
 
 export interface VehicleFormValues {
   id?: string;
+  listingType: "sale" | "rental";
   make: string;
   model: string;
   variant: string;
@@ -123,22 +164,43 @@ export interface VehicleFormValues {
   slug: string;
   status: string;
   publishAt: string;
+  // Salgsspecifikt
+  downPaymentDkk: string;
+  deliveryCostDkk: string;
+  warrantyText: string;
+  serviceHistoryText: string;
+  lastServiceDate: string;
+  ownerCount: string;
+  // Udlejningsspecifikt
+  pricePerDayDkk: string;
+  pricePerWeekDkk: string;
+  pricePerMonthDkk: string;
+  depositDkk: string;
+  includedKmPerDay: string;
+  extraKmPriceDkk: string;
+  minAge: string;
+  licenseRequirement: string;
+  availabilityStatus: string;
+  pickupLocation: string;
+  insuranceInfo: string;
+  extraFeesText: string;
 }
 
 const num = (v: string): number | null => (v.trim() === "" ? null : Number(v));
+const str = (v: string): string | null => (v.trim() === "" ? null : v.trim());
 
 export function useSaveVehicle() {
   const { user } = useAdminAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (form: VehicleFormValues): Promise<void> => {
+    mutationFn: async (form: VehicleFormValues): Promise<string> => {
       const slug =
         form.slug.trim() ||
         vehicleSlug({ make: form.make, model: form.model, variant: form.variant, year: num(form.modelYear) ?? undefined });
 
       if (!isSupabaseConfigured) {
         const existing = form.id ? demoVehicles().find((v) => v.id === form.id) : undefined;
-        demoSaveVehicle({
+        const saved = demoSaveVehicle({
           ...(existing ?? {
             id: form.id ?? "",
             organizationId: user!.organizationId,
@@ -146,6 +208,35 @@ export function useSaveVehicle() {
             images: [],
             soldAt: null,
           }),
+          listingType: form.listingType,
+          saleDetails:
+            form.listingType === "sale"
+              ? {
+                  downPaymentDkk: num(form.downPaymentDkk),
+                  deliveryCostDkk: num(form.deliveryCostDkk),
+                  warrantyText: str(form.warrantyText),
+                  serviceHistoryText: str(form.serviceHistoryText),
+                  lastServiceDate: str(form.lastServiceDate),
+                  ownerCount: num(form.ownerCount),
+                }
+              : null,
+          rentalDetails:
+            form.listingType === "rental"
+              ? {
+                  pricePerDayDkk: num(form.pricePerDayDkk),
+                  pricePerWeekDkk: num(form.pricePerWeekDkk),
+                  pricePerMonthDkk: num(form.pricePerMonthDkk),
+                  depositDkk: num(form.depositDkk),
+                  includedKmPerDay: num(form.includedKmPerDay),
+                  extraKmPriceDkk: num(form.extraKmPriceDkk),
+                  minAge: num(form.minAge),
+                  licenseRequirement: str(form.licenseRequirement),
+                  availabilityStatus: (form.availabilityStatus || "available") as RentalAvailability,
+                  pickupLocation: str(form.pickupLocation),
+                  insuranceInfo: str(form.insuranceInfo),
+                  extraFeesText: str(form.extraFeesText),
+                }
+              : null,
           make: form.make,
           model: form.model,
           variant: form.variant || null,
@@ -181,11 +272,12 @@ export function useSaveVehicle() {
           publishAt: form.publishAt || null,
           updatedAt: new Date().toISOString(),
         } as AdminVehicle);
-        return;
+        return saved.id;
       }
 
       const payload = {
         organization_id: user!.organizationId,
+        listing_type: form.listingType,
         make: form.make,
         model: form.model,
         variant: form.variant || null,
@@ -222,10 +314,51 @@ export function useSaveVehicle() {
       };
 
       const supabase = getSupabase();
-      const { error } = form.id
-        ? await supabase.from("vehicles").update(payload).eq("id", form.id)
-        : await supabase.from("vehicles").insert(payload);
+      const { data: saved, error } = form.id
+        ? await supabase.from("vehicles").update(payload).eq("id", form.id).select("id").single()
+        : await supabase.from("vehicles").insert(payload).select("id").single();
       if (error) throw new Error(error.message);
+      const vehicleId = saved.id as string;
+
+      if (form.listingType === "sale") {
+        const { error: saleErr } = await supabase.from("sale_details").upsert(
+          {
+            vehicle_id: vehicleId,
+            organization_id: user!.organizationId,
+            down_payment_dkk: num(form.downPaymentDkk),
+            delivery_cost_dkk: num(form.deliveryCostDkk),
+            warranty_text: str(form.warrantyText),
+            service_history_text: str(form.serviceHistoryText),
+            last_service_date: str(form.lastServiceDate),
+            owner_count: num(form.ownerCount),
+          },
+          { onConflict: "vehicle_id" }
+        );
+        if (saleErr) throw new Error(saleErr.message);
+      } else {
+        const { error: rentalErr } = await supabase.from("rental_details").upsert(
+          {
+            vehicle_id: vehicleId,
+            organization_id: user!.organizationId,
+            price_per_day_dkk: num(form.pricePerDayDkk),
+            price_per_week_dkk: num(form.pricePerWeekDkk),
+            price_per_month_dkk: num(form.pricePerMonthDkk),
+            deposit_dkk: num(form.depositDkk),
+            included_km_per_day: num(form.includedKmPerDay),
+            extra_km_price_dkk: num(form.extraKmPriceDkk),
+            min_age: num(form.minAge),
+            license_requirement: str(form.licenseRequirement),
+            availability_status: form.availabilityStatus || "available",
+            pickup_location: str(form.pickupLocation),
+            insurance_info: str(form.insuranceInfo),
+            extra_fees_text: str(form.extraFeesText),
+          },
+          { onConflict: "vehicle_id" }
+        );
+        if (rentalErr) throw new Error(rentalErr.message);
+      }
+
+      return vehicleId;
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] });

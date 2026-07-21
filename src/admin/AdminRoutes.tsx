@@ -9,6 +9,8 @@ const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
 const AdminVehiclesPage = lazy(() => import("./pages/AdminVehiclesPage"));
 const AdminVehicleFormPage = lazy(() => import("./pages/AdminVehicleFormPage"));
+const AdminRentalVehiclesPage = lazy(() => import("./pages/AdminRentalVehiclesPage"));
+const AdminRentalVehicleFormPage = lazy(() => import("./pages/AdminRentalVehicleFormPage"));
 const AdminLeadsPage = lazy(() => import("./pages/AdminLeadsPage"));
 const AdminLeadDetailPage = lazy(() => import("./pages/AdminLeadDetailPage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
@@ -32,6 +34,8 @@ export default function AdminRoutes() {
             <Route index element={<AdminDashboardPage />} />
             <Route path="biler" element={<AdminVehiclesPage />} />
             <Route path="biler/:id" element={<AdminVehicleFormPage />} />
+            <Route path="lejebiler" element={<AdminRentalVehiclesPage />} />
+            <Route path="lejebiler/:id" element={<AdminRentalVehicleFormPage />} />
             <Route path="leads" element={<AdminLeadsPage />} />
             <Route path="leads/:id" element={<AdminLeadDetailPage />} />
             <Route

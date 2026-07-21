@@ -76,6 +76,7 @@ function base(
     soldAt: null,
     createdAt: new Date(Date.now() - seq * 86_400_000).toISOString(),
     images: img(`demo-${seq}`, data.bodyType, alt),
+    listingType: "sale",
     ...data,
   };
 }

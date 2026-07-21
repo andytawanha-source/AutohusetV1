@@ -1,4 +1,4 @@
-import type { Vehicle } from "@/features/vehicles/types";
+import type { RentalDetails, SaleDetails, Vehicle } from "@/features/vehicles/types";
 
 /** Bil med private adminfelter (eksponeres aldrig offentligt). */
 export interface AdminVehicle extends Vehicle {
@@ -6,6 +6,8 @@ export interface AdminVehicle extends Vehicle {
   vin: string | null;
   publishAt: string | null;
   updatedAt: string;
+  saleDetails: SaleDetails | null;
+  rentalDetails: RentalDetails | null;
 }
 
 export type AdminLeadStatus =
