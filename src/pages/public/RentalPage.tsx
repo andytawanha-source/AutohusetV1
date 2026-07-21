@@ -1,23 +1,19 @@
+import { Link } from "react-router-dom";
 import { Car, Truck, Bus, CarFront } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
+import { RENTAL_CARS } from "@/features/rentals/rentalData";
 
 const ONE2MOVE_URL = "https://one2movebiludlejning.dk/";
 
-/**
- * PLACEHOLDER-DATA: Biludlejningen sker gennem samarbejdspartneren One2move –
- * vi har ikke selv et lejebillager. Nedenstående er tilfældige eksempelbiler,
- * der viser typen af biler man kan leje. Erstat med rigtige priser/billeder,
- * hvis One2move leverer et feed, eller fjern og henvis udelukkende til deres side.
- */
-const RENTAL_CARS: Array<{ name: string; category: string; priceFrom: number; icon: typeof Car }> = [
-  { name: "VW Polo eller lignende", category: "Personbil, lille", priceFrom: 349, icon: Car },
-  { name: "VW Golf eller lignende", category: "Personbil, mellemklasse", priceFrom: 449, icon: CarFront },
-  { name: "VW Caddy eller lignende", category: "Varevogn", priceFrom: 549, icon: Truck },
-  { name: "Ford Transit eller lignende", category: "Flyttebil", priceFrom: 649, icon: Truck },
-  { name: "Mercedes Vito eller lignende", category: "Minibus, 9 personer", priceFrom: 899, icon: Bus },
-  { name: "VW Passat stationcar", category: "Stationcar", priceFrom: 499, icon: CarFront },
-];
+const ICONS: Record<string, typeof Car> = {
+  "vw-polo-eller-lignende": Car,
+  "vw-golf-eller-lignende": CarFront,
+  "vw-caddy-eller-lignende": Truck,
+  "ford-transit-eller-lignende": Truck,
+  "mercedes-vito-eller-lignende": Bus,
+  "vw-passat-stationcar": CarFront,
+};
 
 export default function RentalPage() {
   const brand = useBrand();
@@ -43,29 +39,28 @@ export default function RentalPage() {
       </div>
 
       <div className="mx-auto mt-8 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {RENTAL_CARS.map((car) => (
-          <div
-            key={car.name}
-            className="flex flex-col items-center rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-brand-ink/5"
-          >
-            <div className="flex h-20 w-full items-center justify-center rounded-lg bg-brand-surface-warm">
-              <car.icon className="h-9 w-9 text-brand-accent" aria-hidden />
-            </div>
-            <h2 className="mt-3 font-semibold text-brand-ink">{car.name}</h2>
-            <p className="text-sm text-brand-ink/60">{car.category}</p>
-            <p className="mt-2 font-display text-lg font-bold text-brand-primary">
-              Fra {car.priceFrom} kr./dag
-            </p>
-            <a
-              href={ONE2MOVE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+        {RENTAL_CARS.map((car) => {
+          const Icon = ICONS[car.slug] ?? Car;
+          return (
+            <Link
+              key={car.slug}
+              to={`/biludlejning/${car.slug}`}
+              className="group flex flex-col items-center rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-brand-ink/5 transition-all hover:-translate-y-1 hover:shadow-lg"
             >
-              Se ledige biler hos One2move
-            </a>
-          </div>
-        ))}
+              <div className="flex h-20 w-full items-center justify-center rounded-lg bg-brand-surface-warm">
+                <Icon className="h-9 w-9 text-brand-accent" aria-hidden />
+              </div>
+              <h2 className="mt-3 font-semibold text-brand-ink group-hover:text-brand-primary">{car.name}</h2>
+              <p className="text-sm text-brand-ink/60">{car.category}</p>
+              <p className="mt-2 font-display text-lg font-bold text-brand-primary">
+                Fra {car.priceFrom} kr./dag
+              </p>
+              <span className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity group-hover:opacity-90">
+                Læs mere
+              </span>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mx-auto mt-10 max-w-2xl rounded-xl bg-brand-surface-warm/60 p-6 text-center text-sm text-brand-ink/70">
