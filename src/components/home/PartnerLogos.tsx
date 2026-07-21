@@ -5,11 +5,8 @@ import { ShieldCheck, Car, Umbrella } from "lucide-react";
  *
  * Rigtige partnere (juli 2026): AutoConcept (bilgaranti/forsikring på brugte biler),
  * One2move Biludlejning (erstatningsbil/udlejning) og If Forsikring (bilforsikring).
- * Der linkes ud til partnernes egne sider i stedet for at hotlinke deres logofiler –
- * det undgår brud på deres billed-hosting og eventuelle rettighedsspørgsmål ved at
- * genbruge et varemærkebeskyttet logo uden en downloadet, godkendt fil. Har I fået
- * logofiler udleveret af partnerne, kan de lægges i /public/partners/ og sættes som
- * `logoSrc` herunder, så vises det rigtige logo i stedet for ikonet.
+ * Der linkes ud til partnernes egne sider. Logofilerne er udleveret af partnerne
+ * og ligger i /public (autoconcept.webp, if.png, one2move.jpg).
  */
 const PARTNERS: Array<{
   name: string;
@@ -23,18 +20,21 @@ const PARTNERS: Array<{
     tagline: "Bilgaranti og forsikring på din brugte bil",
     href: "https://www.autoconcept.dk/home",
     icon: ShieldCheck,
+    logoSrc: "/autoconcept.webp",
   },
   {
     name: "One2move Biludlejning",
     tagline: "Erstatningsbil og biludlejning i hele Danmark",
     href: "https://one2movebiludlejning.dk/",
     icon: Car,
+    logoSrc: "/one2move.jpg",
   },
   {
     name: "If Forsikring",
     tagline: "Bilforsikring til din nye bil",
     href: "https://www.if.dk/",
     icon: Umbrella,
+    logoSrc: "/if.png",
   },
 ];
 
