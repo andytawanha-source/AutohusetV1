@@ -8,7 +8,8 @@ export const brands: Record<BrandKey, BrandConfig> = {
 };
 
 const DOMAIN_MAP: Record<string, BrandKey> = {
-  // Udfyldes når rigtige domæner kendes, fx "autohusetvest.dk": "autohuset-vest"
+  "autohusetvest.dk": "autohuset-vest",
+  "localhost": "autohuset-vest",
 };
 
 function isBrandKey(value: string | undefined): value is BrandKey {
