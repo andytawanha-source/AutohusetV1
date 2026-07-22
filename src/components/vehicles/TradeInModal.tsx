@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle2, X } from "lucide-react";
 import { WizardProgress } from "@/components/sell/WizardProgress";
 import { StepPlate } from "@/components/sell/StepPlate";
@@ -129,7 +130,12 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
   const vehicleTitle = [vehicle.make, vehicle.model, vehicle.variant].filter(Boolean).join(" ");
   const thumbnail = vehicle.images[0]?.url;
 
-  return (
+  // Renderes via en portal direkte i <body>, så modalens interne <form> (Trin 5)
+  // aldrig ender som et nested <form> inde i VehicleInquiryForms egen <form>.
+  // Nestede formularer er ugyldig HTML – browseren dropper den indre form-tag,
+  // hvilket får "Send"-knappen til i stedet at submitte den YDRE kontaktformular
+  // (fuld side-reload, ingen bekræftelse) i stedet for at sende byttebil-leadet.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -256,6 +262,7 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
