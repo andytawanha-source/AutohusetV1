@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { Navigate, useLocation } from "react-router-dom";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export type AdminRole = "superadmin" | "dealer_admin" | "editor" | "lead_agent";
+export type AdminRole = "superadmin" | "dealer_admin" | "editor" | "lead_agent" | "sales_agent" | "rental_agent";
 
 interface AdminUser {
   id: string;

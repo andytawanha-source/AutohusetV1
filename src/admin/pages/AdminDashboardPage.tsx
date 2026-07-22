@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AlertTriangle, Car, CheckCircle2, Clock, FileEdit, KeyRound, MessageSquare, Plus, Tag } from "lucide-react";
+import { AlertTriangle, BellRing, Car, CheckCircle2, Clock, FileEdit, KeyRound, MessageSquare, Plus, Tag } from "lucide-react";
 import { useAdminInquiries, useAdminLeads, useAdminVehicles } from "../api";
 import { INQUIRY_TYPE_LABELS, LEAD_STATUS_LABELS, type AdminLeadStatus } from "../types";
 import { formatDateTime } from "@/lib/format";
@@ -52,6 +52,14 @@ export default function AdminDashboardPage() {
   }, {});
   const newInquiriesCount = inquiries.filter((i) => i.status === "new").length;
 
+  const now = Date.now();
+  const dueLeads = leads.filter((l) => l.followUpAt && new Date(l.followUpAt).getTime() <= now);
+  const dueInquiries = inquiries.filter((i) => i.followUpAt && new Date(i.followUpAt).getTime() <= now);
+  const overdueFollowUps = [
+    ...dueLeads.map((l) => ({ href: `/admin/leads/salg/${l.id}`, label: `${l.vehicle?.make ?? ""} ${l.vehicle?.model ?? ""} · ${l.contact?.name ?? "Ukendt"}`, at: l.followUpAt! })),
+    ...dueInquiries.map((i) => ({ href: `/admin/leads/henvendelse/${i.id}`, label: `${INQUIRY_TYPE_LABELS[i.inquiryType]} · ${i.name}`, at: i.followUpAt! })),
+  ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -82,6 +90,30 @@ export default function AdminDashboardPage() {
               {incompleteDrafts.length} {incompleteDrafts.length === 1 ? "kladde mangler" : "kladder mangler"} oplysninger før publicering
             </Link>
           )}
+          {overdueFollowUps.length > 0 && (
+            <Link to="/admin/leads" className="flex items-center gap-2 text-sm font-medium text-amber-900 hover:underline">
+              <BellRing className="h-4 w-4 shrink-0" aria-hidden />
+              {overdueFollowUps.length} {overdueFollowUps.length === 1 ? "opfølgning venter" : "opfølgninger venter"} – dato for opfølgning er overskredet
+            </Link>
+          )}
+        </section>
+      )}
+
+      {overdueFollowUps.length > 0 && (
+        <section aria-labelledby="dash-followups" className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
+          <h2 id="dash-followups" className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-brand-primary">
+            <BellRing className="h-5 w-5" aria-hidden /> Opfølgninger der venter
+          </h2>
+          <ul className="divide-y divide-brand-ink/5">
+            {overdueFollowUps.slice(0, 8).map((item, i) => (
+              <li key={i}>
+                <Link to={item.href} className="flex items-center justify-between gap-3 py-2.5 hover:bg-brand-ink/[0.02]">
+                  <span className="truncate text-sm font-medium">{item.label}</span>
+                  <span className="shrink-0 text-xs text-amber-700">{formatDateTime(item.at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

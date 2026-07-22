@@ -16,6 +16,8 @@ const AdminLeadDetailPage = lazy(() => import("./pages/AdminLeadDetailPage"));
 const AdminInquiryDetailPage = lazy(() => import("./pages/AdminInquiryDetailPage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
+const AdminStatsPage = lazy(() => import("./pages/AdminStatsPage"));
+const AdminAuditLogPage = lazy(() => import("./pages/AdminAuditLogPage"));
 
 /** Adminpanel – altid noindex. Rettigheder håndhæves autoritativt af RLS i databasen. */
 export default function AdminRoutes() {
@@ -40,6 +42,15 @@ export default function AdminRoutes() {
             <Route path="leads" element={<AdminLeadsPage />} />
             <Route path="leads/salg/:id" element={<AdminLeadDetailPage />} />
             <Route path="leads/henvendelse/:id" element={<AdminInquiryDetailPage />} />
+            <Route path="statistik" element={<AdminStatsPage />} />
+            <Route
+              path="aktivitetslog"
+              element={
+                <RequireAuth roles={["dealer_admin"]}>
+                  <AdminAuditLogPage />
+                </RequireAuth>
+              }
+            />
             <Route
               path="indstillinger"
               element={

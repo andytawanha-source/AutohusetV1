@@ -3,6 +3,7 @@ import { Loader2, Save } from "lucide-react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAdminAuth } from "../auth";
 import { useBrand } from "@/app/BrandProvider";
+import { logAudit } from "../api";
 
 const inputCls = "w-full rounded-md border border-brand-ink/15 bg-white px-3 py-2 text-sm";
 
@@ -60,6 +61,9 @@ export default function AdminSettingsPage() {
       .eq("organization_id", user!.organizationId);
     setSaving(false);
     setMessage(error ? `Kunne ikke gemme: ${error.message}` : "Indstillingerne er gemt.");
+    if (!error) {
+      void logAudit({ organizationId: user!.organizationId, actorId: user!.id, action: "settings.update", entityType: "brand" });
+    }
   };
 
   return (

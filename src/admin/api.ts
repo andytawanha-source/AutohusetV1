@@ -1,20 +1,66 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { vehicleSlug } from "@/lib/slug";
-import { useAdminAuth } from "./auth";
+import { useAdminAuth, type AdminRole } from "./auth";
 import {
+  demoAddAuditLog,
+  demoAuditLog,
   demoDeleteVehicle,
   demoInquiries,
   demoInquiryById,
+  demoInviteMember,
   demoLeadById,
   demoLeads,
+  demoMembers,
+  demoRemoveMember,
   demoSaveVehicle,
   demoUpdateInquiry,
   demoUpdateLead,
+  demoUpdateMemberRoles,
   demoVehicles,
 } from "./demoStore";
-import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminLeadStatus, AdminVehicle } from "./types";
+import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminLeadStatus, AdminVehicle, AuditLogEntry, OrgMember } from "./types";
 import type { RentalAvailability } from "@/features/vehicles/types";
+
+/**
+ * Skriver én linje til audit_log. Fejler aldrig hele det kaldende flow –
+ * en mislykket log-skrivning må ikke blokere den egentlige handling (samme
+ * princip som e-mail-afsendelse i submit-lead Edge Function).
+ * RLS kræver at actor_id = auth.uid(), så dette kan kun kaldes for den
+ * aktuelt loggede ind bruger, ikke på vegne af andre.
+ */
+export async function logAudit(entry: {
+  organizationId: string;
+  actorId: string;
+  action: string;
+  entityType?: string;
+  entityId?: string;
+  details?: Record<string, unknown>;
+}): Promise<void> {
+  if (!isSupabaseConfigured) {
+    demoAddAuditLog({
+      actorName: "Demo Administrator (TESTDATA)",
+      action: entry.action,
+      entityType: entry.entityType ?? null,
+      entityId: entry.entityId ?? null,
+      details: entry.details ?? {},
+    });
+    return;
+  }
+  try {
+    const { error } = await getSupabase().from("audit_log").insert({
+      organization_id: entry.organizationId,
+      actor_id: entry.actorId,
+      action: entry.action,
+      entity_type: entry.entityType ?? null,
+      entity_id: entry.entityId ?? null,
+      details: entry.details ?? {},
+    });
+    if (error) console.error("Audit-log kunne ikke gemmes:", error);
+  } catch (err) {
+    console.error("Audit-log kunne ikke gemmes:", err);
+  }
+}
 
 /* ============================ Biler ============================ */
 
@@ -363,14 +409,25 @@ export function useSaveVehicle() {
 
       return vehicleId;
     },
-    onSuccess: () => {
+    onSuccess: (vehicleId, form) => {
       void queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] });
       void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      if (user) {
+        void logAudit({
+          organizationId: user.organizationId,
+          actorId: user.id,
+          action: form.id ? "vehicle.update" : "vehicle.create",
+          entityType: "vehicle",
+          entityId: vehicleId,
+          details: { make: form.make, model: form.model, status: form.status },
+        });
+      }
     },
   });
 }
 
 export function useVehicleStatusMutation() {
+  const { user } = useAdminAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
@@ -384,14 +441,27 @@ export function useVehicleStatusMutation() {
       const { error } = await getSupabase().from("vehicles").update({ status }).in("id", ids);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] });
       void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      if (user) {
+        for (const id of vars.ids) {
+          void logAudit({
+            organizationId: user.organizationId,
+            actorId: user.id,
+            action: "vehicle.status_changed",
+            entityType: "vehicle",
+            entityId: id,
+            details: { status: vars.status },
+          });
+        }
+      }
     },
   });
 }
 
 export function useDeleteVehicle() {
+  const { user } = useAdminAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
@@ -406,7 +476,12 @@ export function useDeleteVehicle() {
         .eq("id", id);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] }),
+    onSuccess: (_data, id) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] });
+      if (user) {
+        void logAudit({ organizationId: user.organizationId, actorId: user.id, action: "vehicle.delete", entityType: "vehicle", entityId: id });
+      }
+    },
   });
 }
 
@@ -590,6 +665,16 @@ export function useUpdateLead() {
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({ queryKey: ["admin", "leads"] });
       void queryClient.invalidateQueries({ queryKey: ["admin", "lead", vars.id] });
+      if (user && vars.status) {
+        void logAudit({
+          organizationId: user.organizationId,
+          actorId: user.id,
+          action: "lead.status_changed",
+          entityType: "lead",
+          entityId: vars.id,
+          details: { status: vars.status },
+        });
+      }
     },
   });
 }
@@ -737,6 +822,16 @@ export function useUpdateInquiry() {
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({ queryKey: ["admin", "inquiries"] });
       void queryClient.invalidateQueries({ queryKey: ["admin", "inquiry", vars.id] });
+      if (user && vars.status) {
+        void logAudit({
+          organizationId: user.organizationId,
+          actorId: user.id,
+          action: "inquiry.status_changed",
+          entityType: "inquiry",
+          entityId: vars.id,
+          details: { status: vars.status },
+        });
+      }
     },
   });
 }
@@ -764,6 +859,208 @@ export function useAddInquiryNote() {
       if (error) throw new Error(error.message);
     },
     onSuccess: (_d, vars) => void queryClient.invalidateQueries({ queryKey: ["admin", "inquiry", vars.inquiryId] }),
+  });
+}
+
+/* ============================ Brugere ============================ */
+
+export function useOrgMembers() {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "members"],
+    enabled: !!user,
+    queryFn: async (): Promise<OrgMember[]> => {
+      if (!isSupabaseConfigured) return [...demoMembers()];
+      const supabase = getSupabase();
+      const [{ data: memberRows, error: memberErr }, { data: roleRows, error: roleErr }] = await Promise.all([
+        supabase
+          .from("organization_members")
+          .select("profile_id, profiles(full_name)")
+          .eq("organization_id", user!.organizationId),
+        supabase.from("user_roles").select("profile_id, role").eq("organization_id", user!.organizationId),
+      ]);
+      if (memberErr) throw new Error(memberErr.message);
+      if (roleErr) throw new Error(roleErr.message);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (memberRows ?? []).map((m: any) => ({
+        id: m.profile_id,
+        name: m.profiles?.full_name ?? m.profile_id,
+        email: null,
+        roles: (roleRows ?? []).filter((r) => r.profile_id === m.profile_id).map((r) => r.role as AdminRole),
+      }));
+    },
+  });
+}
+
+/** Inviterer en ny bruger via Edge Function admin-invite-user (kræver service-role, kan ikke gøres klient-side). */
+export function useInviteMember() {
+  const { user } = useAdminAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { email: string; fullName: string; roles: AdminRole[] }): Promise<void> => {
+      if (!isSupabaseConfigured) {
+        demoInviteMember(input);
+        return;
+      }
+      const { error } = await getSupabase().functions.invoke("admin-invite-user", {
+        body: { organizationId: user!.organizationId, email: input.email, fullName: input.fullName, roles: input.roles },
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "members"] }),
+  });
+}
+
+/** Rolleændring er en almindelig klient-side tabelskrivning – RLS tillader det for org-admins (dealer_admin/superadmin). */
+export function useUpdateMemberRoles() {
+  const { user } = useAdminAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ profileId, roles }: { profileId: string; roles: AdminRole[] }): Promise<void> => {
+      if (!isSupabaseConfigured) {
+        demoUpdateMemberRoles(profileId, roles);
+        return;
+      }
+      const supabase = getSupabase();
+      const { error: delErr } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("organization_id", user!.organizationId)
+        .eq("profile_id", profileId);
+      if (delErr) throw new Error(delErr.message);
+      if (roles.length > 0) {
+        const { error: insErr } = await supabase
+          .from("user_roles")
+          .insert(roles.map((role) => ({ organization_id: user!.organizationId, profile_id: profileId, role })));
+        if (insErr) throw new Error(insErr.message);
+      }
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "members"] });
+      if (user) {
+        void logAudit({
+          organizationId: user.organizationId,
+          actorId: user.id,
+          action: "user.roles_changed",
+          entityType: "profile",
+          entityId: vars.profileId,
+          details: { roles: vars.roles },
+        });
+      }
+    },
+  });
+}
+
+export function useRemoveMember() {
+  const { user } = useAdminAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profileId: string): Promise<void> => {
+      if (!isSupabaseConfigured) {
+        demoRemoveMember(profileId);
+        return;
+      }
+      const supabase = getSupabase();
+      await supabase.from("user_roles").delete().eq("organization_id", user!.organizationId).eq("profile_id", profileId);
+      const { error } = await supabase
+        .from("organization_members")
+        .delete()
+        .eq("organization_id", user!.organizationId)
+        .eq("profile_id", profileId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, profileId) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "members"] });
+      if (user) {
+        void logAudit({ organizationId: user.organizationId, actorId: user.id, action: "user.removed", entityType: "profile", entityId: profileId });
+      }
+    },
+  });
+}
+
+/* ============================ Aktivitetslog ============================ */
+
+export function useAuditLog() {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "audit-log"],
+    enabled: !!user,
+    queryFn: async (): Promise<AuditLogEntry[]> => {
+      if (!isSupabaseConfigured) return [...demoAuditLog()];
+      const { data, error } = await getSupabase()
+        .from("audit_log")
+        .select("*, actor:profiles(full_name)")
+        .eq("organization_id", user!.organizationId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw new Error(error.message);
+      return (data ?? []).map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (row: any): AuditLogEntry => ({
+          id: row.id,
+          actorName: row.actor?.full_name ?? "Ukendt bruger",
+          action: row.action,
+          entityType: row.entity_type,
+          entityId: row.entity_id,
+          details: row.details ?? {},
+          createdAt: row.created_at,
+        })
+      );
+    },
+  });
+}
+
+/* ============================ Statistik ============================ */
+
+export interface VehicleViewStat {
+  vehicleId: string;
+  totalViews: number;
+}
+
+/** Samlede sidevisninger pr. bil (vehicle_views), aggregeret klient-side. */
+export function useVehicleViewStats() {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "vehicle-view-stats"],
+    enabled: !!user,
+    queryFn: async (): Promise<VehicleViewStat[]> => {
+      if (!isSupabaseConfigured) return [];
+      const { data, error } = await getSupabase()
+        .from("vehicle_views")
+        .select("vehicle_id, view_count")
+        .eq("organization_id", user!.organizationId);
+      if (error) throw new Error(error.message);
+      const totals = new Map<string, number>();
+      for (const row of data ?? []) {
+        totals.set(row.vehicle_id, (totals.get(row.vehicle_id) ?? 0) + row.view_count);
+      }
+      return [...totals.entries()].map(([vehicleId, totalViews]) => ({ vehicleId, totalViews }));
+    },
+  });
+}
+
+export interface VehicleStatusChange {
+  vehicleId: string;
+  toStatus: string;
+  createdAt: string;
+}
+
+/** Statushistorik pr. bil (vehicle_status_history), bruges til at udregne liggetid. */
+export function useVehicleStatusHistory() {
+  const { user } = useAdminAuth();
+  return useQuery({
+    queryKey: ["admin", "vehicle-status-history"],
+    enabled: !!user,
+    queryFn: async (): Promise<VehicleStatusChange[]> => {
+      if (!isSupabaseConfigured) return [];
+      const { data, error } = await getSupabase()
+        .from("vehicle_status_history")
+        .select("vehicle_id, to_status, created_at")
+        .eq("organization_id", user!.organizationId)
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => ({ vehicleId: row.vehicle_id, toStatus: row.to_status, createdAt: row.created_at }));
+    },
   });
 }
 

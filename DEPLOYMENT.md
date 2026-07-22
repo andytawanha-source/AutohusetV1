@@ -10,7 +10,9 @@ To separate deployments fra samme repository — ét pr. brand. Backend (Supabas
 4. **Slå selvregistrering fra**: Authentication → Providers → Email → disable signups (kun invitationer).
 5. Opret første admin: Authentication → Invite user → kør derefter i SQL-editoren:
    `select public.grant_admin('email@firma.dk', 'autohuset-vest', 'dealer_admin');`
-6. Deploy Edge Functions: `supabase functions deploy plate-lookup submit-lead`.
+6. Deploy Edge Functions: `supabase functions deploy plate-lookup submit-lead admin-invite-user`.
+   `admin-invite-user` bruges af adminpanelets "Brugere"-side (Fase 3) til at invitere nye kolleger uden manuel SQL –
+   den kræver `SUPABASE_SERVICE_ROLE_KEY` og `SUPABASE_ANON_KEY`, som Supabase sætter automatisk for Edge Functions.
 7. Sæt function secrets (ALDRIG i frontend):
    ```bash
    supabase secrets set VEHICLE_LOOKUP_PROVIDER=mock VEHICLE_LOOKUP_ENABLED=true \

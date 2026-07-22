@@ -1,6 +1,7 @@
 import { getDemoVehicles } from "@/features/vehicles/demoData";
 import type { Vehicle } from "@/features/vehicles/types";
-import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminVehicle } from "./types";
+import type { AdminInquiry, AdminInquiryDetail, AdminLead, AdminLeadDetail, AdminVehicle, AuditLogEntry, OrgMember } from "./types";
+import type { AdminRole } from "./auth";
 
 /**
  * In-memory demodatalager til adminpanelet, når Supabase ikke er konfigureret.
@@ -308,4 +309,81 @@ export function demoInquiryById(id: string): AdminInquiryDetail | undefined {
 export function demoUpdateInquiry(id: string, patch: Partial<AdminInquiry>): void {
   const inquiry = demoInquiryById(id);
   if (inquiry) Object.assign(inquiry, patch);
+}
+
+/* ============================ Brugere ============================ */
+
+let members: OrgMember[] | null = null;
+
+function demoMembersInit(): OrgMember[] {
+  return [
+    { id: "demo-admin", name: "Demo Administrator (TESTDATA)", email: "demo-admin@example.invalid", roles: ["dealer_admin"] },
+    { id: "demo-sales-1", name: "Sanne Sælger (TESTDATA)", email: "sanne@example.invalid", roles: ["sales_agent"] },
+    { id: "demo-lead-agent-1", name: "Lasse Leadmedarbejder (TESTDATA)", email: "lasse@example.invalid", roles: ["lead_agent"] },
+  ];
+}
+
+export function demoMembers(): OrgMember[] {
+  if (!members) members = demoMembersInit();
+  return members;
+}
+
+export function demoInviteMember(input: { email: string; fullName: string; roles: AdminRole[] }): OrgMember {
+  const list = demoMembers();
+  const existing = list.find((m) => m.email === input.email);
+  if (existing) {
+    existing.roles = input.roles;
+    existing.name = input.fullName;
+    return existing;
+  }
+  const member: OrgMember = { id: `demo-member-${Date.now()}`, name: input.fullName, email: input.email, roles: input.roles };
+  list.push(member);
+  return member;
+}
+
+export function demoUpdateMemberRoles(id: string, roles: AdminRole[]): void {
+  const member = demoMembers().find((m) => m.id === id);
+  if (member) member.roles = roles;
+}
+
+export function demoRemoveMember(id: string): void {
+  const list = demoMembers();
+  const idx = list.findIndex((m) => m.id === id);
+  if (idx >= 0) list.splice(idx, 1);
+}
+
+/* ============================ Aktivitetslog ============================ */
+
+let auditLog: AuditLogEntry[] | null = null;
+
+function demoAuditLogInit(): AuditLogEntry[] {
+  return [
+    {
+      id: "demo-audit-1",
+      actorName: "Demo Administrator (TESTDATA)",
+      action: "vehicle.publish",
+      entityType: "vehicle",
+      entityId: "demo-draft-1",
+      details: { make: "Audi", model: "A4" },
+      createdAt: new Date(Date.now() - 5 * 3600_000).toISOString(),
+    },
+    {
+      id: "demo-audit-2",
+      actorName: "Demo Administrator (TESTDATA)",
+      action: "lead.status_changed",
+      entityType: "lead",
+      entityId: "demo-lead-2",
+      details: { from: "new", to: "contacted" },
+      createdAt: new Date(Date.now() - 20 * 3600_000).toISOString(),
+    },
+  ];
+}
+
+export function demoAuditLog(): AuditLogEntry[] {
+  if (!auditLog) auditLog = demoAuditLogInit();
+  return auditLog;
+}
+
+export function demoAddAuditLog(entry: Omit<AuditLogEntry, "id" | "createdAt">): void {
+  demoAuditLog().unshift({ ...entry, id: `demo-audit-${Date.now()}`, createdAt: new Date().toISOString() });
 }

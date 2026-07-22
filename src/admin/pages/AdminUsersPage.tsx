@@ -1,46 +1,144 @@
-import { useQuery } from "@tanstack/react-query";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { useState } from "react";
+import { Loader2, Trash2, UserPlus, X } from "lucide-react";
+import { useInviteMember, useOrgMembers, useRemoveMember, useUpdateMemberRoles } from "../api";
+import type { AdminRole } from "../auth";
 import { useAdminAuth } from "../auth";
 
-const ROLE_LABELS: Record<string, string> = {
+export const ROLE_LABELS: Record<string, string> = {
   superadmin: "Superadmin",
   dealer_admin: "Forhandleradmin",
   editor: "Redaktør",
   lead_agent: "Leadmedarbejder",
+  sales_agent: "Sælger",
+  rental_agent: "Udlejningsmedarbejder",
 };
 
-interface MemberRow {
-  id: string;
-  name: string;
-  roles: string[];
+const ASSIGNABLE_ROLES: AdminRole[] = ["dealer_admin", "editor", "lead_agent", "sales_agent", "rental_agent"];
+
+function RoleCheckboxes({ selected, onChange }: { selected: AdminRole[]; onChange: (roles: AdminRole[]) => void }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {ASSIGNABLE_ROLES.map((role) => {
+        const checked = selected.includes(role);
+        return (
+          <label
+            key={role}
+            className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              checked ? "border-brand-primary bg-brand-primary/10 text-brand-primary" : "border-brand-ink/15 text-brand-ink/60 hover:bg-brand-ink/5"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={(e) => onChange(e.target.checked ? [...selected, role] : selected.filter((r) => r !== role))}
+              className="sr-only"
+            />
+            {ROLE_LABELS[role]}
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+function InviteForm({ onDone }: { onDone: () => void }) {
+  const invite = useInviteMember();
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [roles, setRoles] = useState<AdminRole[]>(["lead_agent"]);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (roles.length === 0) {
+      setError("Vælg mindst én rolle.");
+      return;
+    }
+    try {
+      await invite.mutateAsync({ email, fullName, roles });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunne ikke invitere brugeren.");
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4 rounded-xl border border-brand-ink/10 bg-brand-surface-warm/40 p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg font-bold text-brand-primary">Invitér ny bruger</h2>
+        <button type="button" onClick={onDone} aria-label="Luk" className="rounded-full p-1.5 hover:bg-brand-ink/5">
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="inv-name" className="mb-1 block text-sm font-medium">Navn</label>
+          <input id="inv-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full rounded-md border border-brand-ink/15 bg-white px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label htmlFor="inv-email" className="mb-1 block text-sm font-medium">E-mail</label>
+          <input id="inv-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-brand-ink/15 bg-white px-3 py-2 text-sm" />
+        </div>
+      </div>
+      <div>
+        <p className="mb-1.5 text-sm font-medium">Roller</p>
+        <RoleCheckboxes selected={roles} onChange={setRoles} />
+      </div>
+      {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+      <button
+        type="submit"
+        disabled={invite.isPending}
+        className="inline-flex items-center gap-2 rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+      >
+        {invite.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
+        Send invitation
+      </button>
+    </form>
+  );
 }
 
 export default function AdminUsersPage() {
-  const { user } = useAdminAuth();
-  const { data: members, isLoading } = useQuery({
-    queryKey: ["admin", "members"],
-    enabled: !!user,
-    queryFn: async (): Promise<MemberRow[]> => {
-      if (!isSupabaseConfigured) {
-        return [{ id: "demo-admin", name: "Demo Administrator (TESTDATA)", roles: ["dealer_admin"] }];
-      }
-      const supabase = getSupabase();
-      const [{ data: memberRows }, { data: roleRows }] = await Promise.all([
-        supabase.from("organization_members").select("profile_id, profiles(full_name)").eq("organization_id", user!.organizationId),
-        supabase.from("user_roles").select("profile_id, role").eq("organization_id", user!.organizationId),
-      ]);
-      return (memberRows ?? []).map((m) => ({
-        id: m.profile_id,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        name: (m as any).profiles?.full_name ?? m.profile_id,
-        roles: (roleRows ?? []).filter((r) => r.profile_id === m.profile_id).map((r) => r.role),
-      }));
-    },
-  });
+  const { user, isDemo } = useAdminAuth();
+  const { data: members, isLoading } = useOrgMembers();
+  const updateRoles = useUpdateMemberRoles();
+  const removeMember = useRemoveMember();
+  const [showInvite, setShowInvite] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftRoles, setDraftRoles] = useState<AdminRole[]>([]);
+
+  const startEdit = (id: string, roles: AdminRole[]) => {
+    setEditingId(id);
+    setDraftRoles(roles);
+  };
+
+  const saveRoles = async (id: string) => {
+    await updateRoles.mutateAsync({ profileId: id, roles: draftRoles });
+    setEditingId(null);
+  };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="font-display text-2xl font-bold text-brand-primary">Brugere og roller</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold text-brand-primary">Brugere og roller</h1>
+        {!showInvite && (
+          <button
+            type="button"
+            onClick={() => setShowInvite(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            <UserPlus className="h-4 w-4" aria-hidden /> Invitér bruger
+          </button>
+        )}
+      </div>
+
+      {isDemo && (
+        <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          DEMO-MODE: invitationer, rolleændringer og fjernelser gemmes kun i denne browsersession.
+        </p>
+      )}
+
+      {showInvite && <InviteForm onDone={() => setShowInvite(false)} />}
 
       <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-brand-ink/5">
         <table className="w-full text-sm">
@@ -48,21 +146,65 @@ export default function AdminUsersPage() {
             <tr className="border-b border-brand-ink/10 text-left text-xs uppercase tracking-wide text-brand-ink/50">
               <th className="p-3">Bruger</th>
               <th className="p-3">Roller</th>
+              <th className="p-3" />
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={2} className="p-6 text-center text-brand-ink/50">Indlæser…</td></tr>}
+            {isLoading && (
+              <tr>
+                <td colSpan={3} className="p-6 text-center text-brand-ink/50">Indlæser…</td>
+              </tr>
+            )}
             {(members ?? []).map((m) => (
-              <tr key={m.id} className="border-b border-brand-ink/5">
+              <tr key={m.id} className="border-b border-brand-ink/5 align-top">
                 <td className="p-3 font-medium">{m.name}</td>
                 <td className="p-3">
-                  {m.roles.length
-                    ? m.roles.map((r) => (
-                        <span key={r} className="mr-1.5 rounded-full bg-brand-primary/10 px-2.5 py-1 text-xs font-medium text-brand-primary">
-                          {ROLE_LABELS[r] ?? r}
-                        </span>
-                      ))
-                    : <span className="text-brand-ink/40">Ingen roller</span>}
+                  {editingId === m.id ? (
+                    <RoleCheckboxes selected={draftRoles} onChange={setDraftRoles} />
+                  ) : m.roles.length ? (
+                    m.roles.map((r) => (
+                      <span key={r} className="mr-1.5 mb-1 inline-block rounded-full bg-brand-primary/10 px-2.5 py-1 text-xs font-medium text-brand-primary">
+                        {ROLE_LABELS[r] ?? r}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-brand-ink/40">Ingen roller</span>
+                  )}
+                </td>
+                <td className="p-3 text-right">
+                  {editingId === m.id ? (
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveRoles(m.id)}
+                        disabled={updateRoles.isPending}
+                        className="rounded-md bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60"
+                      >
+                        Gem
+                      </button>
+                      <button type="button" onClick={() => setEditingId(null)} className="rounded-md px-3 py-1.5 text-xs text-brand-ink/60 hover:bg-brand-ink/5">
+                        Annullér
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => startEdit(m.id, m.roles)} className="rounded-md px-3 py-1.5 text-xs font-medium text-brand-primary hover:bg-brand-primary/5">
+                        Rediger roller
+                      </button>
+                      {m.id !== user?.id && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Fjern ${m.name} fra organisationen?`)) void removeMember.mutateAsync(m.id);
+                          }}
+                          aria-label={`Fjern ${m.name}`}
+                          className="rounded-md p-1.5 text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -70,14 +212,10 @@ export default function AdminUsersPage() {
         </table>
       </div>
 
-      <div className="rounded-xl bg-white p-5 text-sm text-brand-ink/60 shadow-sm ring-1 ring-brand-ink/5">
-        <h2 className="mb-2 font-display text-lg font-bold text-brand-primary">Sådan tilføjer du en bruger</h2>
-        <ol className="list-decimal space-y-1 pl-5">
-          <li>Invitér brugeren i Supabase Dashboard (Authentication → Users → Invite). Selvregistrering skal være slået fra.</li>
-          <li>Kør derefter i SQL-editoren: <code>select public.grant_admin(&#39;email@firma.dk&#39;, &#39;autohuset-vest&#39;, &#39;editor&#39;);</code></li>
-          <li>Roller: superadmin, dealer_admin, editor, lead_agent. Rettigheder håndhæves af Row Level Security i databasen – ikke kun i brugerfladen.</li>
-        </ol>
-      </div>
+      <p className="text-xs text-brand-ink/50">
+        Rettigheder håndhæves autoritativt af Row Level Security i databasen – rollevisningen her styrer kun adgang til
+        adminpanelets brugerflade.
+      </p>
     </div>
   );
 }

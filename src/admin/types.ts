@@ -1,4 +1,5 @@
 import type { RentalDetails, SaleDetails, Vehicle } from "@/features/vehicles/types";
+import type { AdminRole } from "./auth";
 
 /** Bil med private adminfelter (eksponeres aldrig offentligt). */
 export interface AdminVehicle extends Vehicle {
@@ -122,6 +123,23 @@ export interface AdminInquiryDetail extends AdminInquiry {
   attribution: Record<string, unknown> | null;
   notes: Array<{ id: string; author: string; body: string; createdAt: string }>;
   history: Array<{ from: string | null; to: string; at: string; by: string }>;
+}
+
+export interface OrgMember {
+  id: string;
+  name: string;
+  email: string | null;
+  roles: AdminRole[];
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorName: string;
+  action: string;
+  entityType: string | null;
+  entityId: string | null;
+  details: Record<string, unknown>;
+  createdAt: string;
 }
 
 /** Fælles rækkeform til den samlede leadindbakke, uanset kilde-tabel. */

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Car, FlaskConical, KeyRound, LayoutDashboard, LogOut, Menu, MessageSquare, Settings, Users, X } from "lucide-react";
+import { BarChart3, Car, FlaskConical, History, KeyRound, LayoutDashboard, LogOut, Menu, MessageSquare, Settings, Users, X } from "lucide-react";
 import { useAdminAuth } from "../auth";
 import { useAdminInquiries, useAdminLeads } from "../api";
 import { useBrand } from "@/app/BrandProvider";
@@ -11,7 +11,9 @@ const NAV = [
   { to: "/admin/biler", label: "Biler til salg", icon: Car },
   { to: "/admin/lejebiler", label: "Lejebiler", icon: KeyRound },
   { to: "/admin/leads", label: "Leads", icon: MessageSquare, showLeadBadge: true },
+  { to: "/admin/statistik", label: "Statistik", icon: BarChart3 },
   { to: "/admin/brugere", label: "Brugere", icon: Users, roles: ["dealer_admin" as const] },
+  { to: "/admin/aktivitetslog", label: "Aktivitetslog", icon: History, roles: ["dealer_admin" as const] },
   { to: "/admin/indstillinger", label: "Indstillinger", icon: Settings, roles: ["dealer_admin" as const] },
 ];
 
