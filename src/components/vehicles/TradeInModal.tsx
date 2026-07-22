@@ -134,7 +134,7 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
       role="dialog"
       aria-modal="true"
       aria-label="Hvad er min bil værd?"
-      className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/60 p-3 py-8 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/60 p-3 py-8 backdrop-blur-sm sm:p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
