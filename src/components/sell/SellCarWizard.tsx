@@ -6,7 +6,6 @@ import { StepConfirmVehicle } from "./StepConfirmVehicle";
 import { StepCondition } from "./StepCondition";
 import { StepPhotos } from "./StepPhotos";
 import { StepContact } from "./StepContact";
-import { StepConsent } from "./StepConsent";
 import { lookupPlate } from "@/features/plate-lookup/client";
 import { submitSellCarLead } from "@/features/leads/api";
 import type {
@@ -81,11 +80,17 @@ export function SellCarWizard() {
     }
   };
 
-  const handleSubmit = async (consent: ConsentStepInput) => {
+  // Kontaktoplysninger + samtykke sendes med det samme her, i stedet for at vente
+  // på et separat sidste "gennemgå og send"-trin. Se kommentaren i StepContact.tsx:
+  // en sælger skal kunne følge op på et lead, selv hvis kunden lukker fanen lige
+  // efter at have givet sine kontaktoplysninger.
+  const handleContactSubmit = async (contact: ContactStepInput, consent: ConsentStepInput) => {
     setSubmitError(null);
     setIsSubmitting(true);
+    const nextState: SellCarState = { ...state, contact };
+    setState(nextState);
     try {
-      const result = await submitSellCarLead(state, consent);
+      const result = await submitSellCarLead(nextState, consent);
       track("submit_sell_car_lead", { reference: result.reference, is_demo: result.isDemo });
       navigate(`/saelg-din-bil/tak/${encodeURIComponent(result.reference)}`);
     } catch (err) {
@@ -148,20 +153,10 @@ export function SellCarWizard() {
         {step === 4 && (
           <StepContact
             defaultValues={state.contact}
-            onSubmit={(contact: ContactStepInput) => {
-              setState((s) => ({ ...s, contact }));
-              goTo(5);
-            }}
-            onBack={() => goTo(3)}
-          />
-        )}
-        {step === 5 && (
-          <StepConsent
-            state={state}
             isSubmitting={isSubmitting}
             submitError={submitError}
-            onSubmit={handleSubmit}
-            onBack={() => goTo(4)}
+            onSubmit={handleContactSubmit}
+            onBack={() => goTo(3)}
           />
         )}
       </div>

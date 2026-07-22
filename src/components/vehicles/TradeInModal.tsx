@@ -6,9 +6,10 @@ import { StepPlate } from "@/components/sell/StepPlate";
 import { StepConfirmVehicle } from "@/components/sell/StepConfirmVehicle";
 import { StepCondition } from "@/components/sell/StepCondition";
 import { StepContact } from "@/components/sell/StepContact";
-import { StepValuation } from "@/components/sell/StepValuation";
 import { lookupPlate } from "@/features/plate-lookup/client";
 import { submitSellCarLead } from "@/features/leads/api";
+import { useInventory } from "@/features/vehicles/api";
+import { estimateTradeInValue, valuationInputFromLookup } from "@/features/leads/valuation";
 import type {
   ConditionStepInput,
   ConsentStepInput,
@@ -22,7 +23,7 @@ import { formatPrice } from "@/lib/format";
 import { useBrand } from "@/app/BrandProvider";
 import { track } from "@/features/tracking/track";
 
-const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Kontakt", "Vurdering"];
+const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Kontakt"];
 
 /**
  * "Hvad er min bil værd?" – byttebilsvurdering startet direkte fra en bils detaljeside.
@@ -47,6 +48,7 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<{ reference: string } | null>(null);
+  const { data: stock } = useInventory();
   const headingRef = useRef<HTMLDivElement>(null);
   const startTracked = useRef(false);
 
@@ -108,11 +110,28 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
     }
   };
 
-  const handleSubmit = async (consent: ConsentStepInput) => {
+  // Kontaktoplysninger + samtykke sendes med det samme, FØR det automatiske skøn
+  // vises – se kommentaren i StepContact.tsx. Skønnet beregnes her (synkront, via
+  // de rene funktioner i features/leads/valuation.ts) og gemmes med henvendelsen,
+  // så en sælger kan se det samme tal som kunden fik at se.
+  const handleContactSubmit = async (contact: ContactStepInput, consent: ConsentStepInput) => {
     setSubmitError(null);
     setIsSubmitting(true);
+
+    const input = valuationInputFromLookup(state.lookup, state.manualVehicle, state.plate?.mileageKm ?? 0, state.condition);
+    const result_ = estimateTradeInValue(input, stock ?? []);
+    const estimate: NonNullable<SellCarState["estimate"]> = {
+      lowDkk: result_.low,
+      midDkk: result_.mid,
+      highDkk: result_.high,
+      sampleSize: result_.sampleSize,
+      basis: result_.basis,
+    };
+    const nextState: SellCarState = { ...state, contact, estimate };
+    setState(nextState);
+
     try {
-      const submitResult = await submitSellCarLead(state, consent);
+      const submitResult = await submitSellCarLead(nextState, consent);
       track("submit_sell_car_lead", {
         reference: submitResult.reference,
         is_demo: submitResult.isDemo,
@@ -241,21 +260,10 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
               {step === 3 && (
                 <StepContact
                   defaultValues={state.contact}
-                  onSubmit={(contact: ContactStepInput) => {
-                    setState((s) => ({ ...s, contact }));
-                    goTo(4);
-                  }}
-                  onBack={() => goTo(2)}
-                />
-              )}
-              {step === 4 && (
-                <StepValuation
-                  state={state}
                   isSubmitting={isSubmitting}
                   submitError={submitError}
-                  onEstimate={(estimate) => setState((s) => ({ ...s, estimate }))}
-                  onSubmit={handleSubmit}
-                  onBack={() => goTo(3)}
+                  onSubmit={handleContactSubmit}
+                  onBack={() => goTo(2)}
                 />
               )}
             </>

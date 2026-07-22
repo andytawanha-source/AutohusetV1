@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_STEPS = ["Din bil", "Bekræft", "Stand", "Billeder", "Kontakt", "Send"];
+const DEFAULT_STEPS = ["Din bil", "Bekræft", "Stand", "Billeder", "Kontakt"];
 
 export function WizardProgress({ current, steps = DEFAULT_STEPS }: { current: number; steps?: string[] }) {
   return (
