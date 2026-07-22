@@ -16,7 +16,11 @@ import { next } from "@vercel/edge";
  * SITE_AUTH_PASSWORD i Vercel, når sitet skal være offentligt tilgængeligt.
  */
 export const config = {
-  matcher: "/((?!favicon|apple-touch-icon|icons/|site.webmanifest).*)",
+  // Ekskluderer også /assets/ (de hashede build-JS/CSS-filer) – de skal altid kunne
+  // hentes uden om login-formularen, ellers risikerer en session, hvor cookien af en
+  // eller anden grund ikke følger med på asset-anmodningen, at ende med en hvid/ødelagt
+  // side i stedet for blot at vise login-siden på selve dokumentet.
+  matcher: "/((?!favicon|apple-touch-icon|icons/|site.webmanifest|assets/).*)",
 };
 
 const COOKIE_NAME = "site_auth";

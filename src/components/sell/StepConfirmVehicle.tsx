@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, FlaskConical } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, FlaskConical } from "lucide-react";
 import type { NormalizedVehicleLookupResult } from "@/features/plate-lookup/types";
 import { manualVehicleSchema, type ManualVehicleInput } from "@/features/leads/schema";
 import { formatDate } from "@/lib/format";
 import { FieldError, inputCls } from "./fields";
+
+/**
+ * Årgang og drivmiddel er de to felter, der påvirker det automatiske skøn allermest
+ * (deprecieringsalder hhv. op til +8% for el). Mangler opslaget dem, får kunden et
+ * useriøst/upræcist skøn uden selv at vide hvorfor – derfor tvinges disse (og kun disse)
+ * to felter til at være udfyldt, før vi går videre, uanset om resten af opslaget lykkedes.
+ */
+function isMissingCriticalInfo(lookup: NormalizedVehicleLookupResult | null): boolean {
+  if (!lookup) return false;
+  return !lookup.modelYear || !lookup.fuelType;
+}
 
 function Row({ label, value }: { label: string; value?: string | number | null }) {
   if (value === undefined || value === null || value === "") return null;
@@ -30,10 +41,23 @@ export function StepConfirmVehicle({
   onManual: (data: ManualVehicleInput) => void;
   onBack: () => void;
 }) {
+  const missingCritical = isMissingCriticalInfo(lookup);
   const [manualMode, setManualMode] = useState(lookup === null);
   const { register, handleSubmit, formState } = useForm<ManualVehicleInput>({
     resolver: zodResolver(manualVehicleSchema),
-    defaultValues: manualDefault,
+    defaultValues:
+      manualDefault ??
+      (lookup
+        ? {
+            make: lookup.make,
+            model: lookup.model,
+            variant: lookup.variant,
+            modelYear: lookup.modelYear,
+            fuelType: lookup.fuelType,
+            transmission: lookup.transmission,
+            color: lookup.color,
+          }
+        : undefined),
   });
 
   if (!manualMode && lookup) {
@@ -50,6 +74,14 @@ export function StepConfirmVehicle({
           <p className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">
             <FlaskConical className="h-4 w-4 shrink-0" aria-hidden />
             DEMO-MODE: Dette er mockdata – der er ikke foretaget et rigtigt registeropslag.
+          </p>
+        )}
+
+        {missingCritical && (
+          <p className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+            Opslaget mangler {!lookup.modelYear && !lookup.fuelType ? "årgang og drivmiddel" : !lookup.modelYear ? "årgang" : "drivmiddel"}
+            {" "}– vi beder dig lige udfylde det, så vi kan give dig et retvisende skøn.
           </p>
         )}
 
@@ -77,10 +109,11 @@ export function StepConfirmVehicle({
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={onConfirm}
+            onClick={missingCritical ? () => setManualMode(true) : onConfirm}
             className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-gradient px-5 py-3 font-semibold text-white hover:opacity-90"
           >
-            <CheckCircle2 className="h-4 w-4" aria-hidden /> Ja, det er min bil
+            <CheckCircle2 className="h-4 w-4" aria-hidden />
+            {missingCritical ? "Ja, det er min bil – udfyld manglende info" : "Ja, det er min bil"}
           </button>
           <button
             type="button"
@@ -130,8 +163,8 @@ export function StepConfirmVehicle({
           <FieldError id="mv-year-err" message={formState.errors.modelYear?.message} />
         </div>
         <div>
-          <label htmlFor="mv-fuel" className="mb-1 block text-sm font-medium">Drivmiddel</label>
-          <select id="mv-fuel" className={inputCls} {...register("fuelType")}>
+          <label htmlFor="mv-fuel" className="mb-1 block text-sm font-medium">Drivmiddel *</label>
+          <select id="mv-fuel" className={inputCls} {...register("fuelType")} aria-invalid={!!formState.errors.fuelType}>
             <option value="">Vælg…</option>
             <option>Benzin</option>
             <option>Diesel</option>
@@ -139,6 +172,7 @@ export function StepConfirmVehicle({
             <option>Hybrid</option>
             <option>Plugin-hybrid</option>
           </select>
+          <FieldError id="mv-fuel-err" message={formState.errors.fuelType?.message} />
         </div>
         <div>
           <label htmlFor="mv-trans" className="mb-1 block text-sm font-medium">Gearkasse</label>

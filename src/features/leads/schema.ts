@@ -29,7 +29,9 @@ export const manualVehicleSchema = z.object({
     .int()
     .min(1950, "Kontrollér årgangen")
     .max(new Date().getFullYear() + 1, "Kontrollér årgangen"),
-  fuelType: z.string().optional(),
+  // Påkrævet (ikke bare "optional") – drivmiddel påvirker skønnet markant (fx +8% for el),
+  // så et manglende svar her giver et upræcist/useriøst skøn frem for blot et mindre nøjagtigt.
+  fuelType: z.string().min(1, "Vælg drivmiddel"),
   transmission: z.string().optional(),
   color: z.string().optional(),
 });
