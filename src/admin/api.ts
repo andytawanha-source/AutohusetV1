@@ -527,6 +527,23 @@ function mapLead(row: any): AdminLead {
           isMock: snapshot.is_mock,
         }
       : null,
+    interestVehicle: row.interest_vehicle_label
+      ? {
+          id: row.interest_vehicle_id,
+          label: row.interest_vehicle_label,
+          slug: row.interest_vehicle_slug,
+          priceDkk: row.interest_vehicle_price_dkk,
+        }
+      : null,
+    estimate:
+      row.estimate_low_dkk !== null && row.estimate_low_dkk !== undefined
+        ? {
+            lowDkk: row.estimate_low_dkk,
+            midDkk: row.estimate_mid_dkk,
+            highDkk: row.estimate_high_dkk,
+            sampleSize: row.estimate_sample_size,
+          }
+        : null,
   };
 }
 

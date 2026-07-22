@@ -39,7 +39,39 @@ const payloadSchema = z.object({
     fileName: z.string().max(255),
     contentType: z.string().max(100),
   })).max(12),
+  // "Byt din bil"-kontekst: udfyldt når vurderingen startes fra en konkret bils
+  // detaljeside (TradeInModal), tomt for den almindelige "Sælg din bil"-side.
+  interestVehicle: z
+    .object({
+      id: z.string(),
+      label: z.string().max(200),
+      priceDkk: z.number().nullable(),
+      slug: z.string().max(200),
+    })
+    .nullable()
+    .optional(),
+  // Det automatisk beregnede skøn kunden fik vist – IKKE et bindende tilbud, kun til
+  // reference for sælgeren, så de kan se hvad kunden allerede har set.
+  estimate: z
+    .object({
+      lowDkk: z.number(),
+      midDkk: z.number(),
+      highDkk: z.number(),
+      sampleSize: z.number(),
+      basis: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
+
+/** Forkaster åbenlyst forkerte årgange (fx 0) i stedet for at gemme et misvisende tal. */
+function sanitizeModelYear(year: unknown): number | null {
+  const n = Number(year);
+  if (!Number.isFinite(n)) return null;
+  const currentYear = new Date().getFullYear();
+  if (n < 1950 || n > currentYear + 1) return null;
+  return n;
+}
 
 function adminClient() {
   return createClient(
@@ -98,6 +130,14 @@ Deno.serve(async (req) => {
       registration_number: payload.registrationNumber,
       mileage_km: payload.mileageKm,
       source: "website",
+      interest_vehicle_id: payload.interestVehicle?.id ?? null,
+      interest_vehicle_label: payload.interestVehicle?.label ?? null,
+      interest_vehicle_slug: payload.interestVehicle?.slug ?? null,
+      interest_vehicle_price_dkk: payload.interestVehicle?.priceDkk ?? null,
+      estimate_low_dkk: payload.estimate?.lowDkk ?? null,
+      estimate_mid_dkk: payload.estimate?.midDkk ?? null,
+      estimate_high_dkk: payload.estimate?.highDkk ?? null,
+      estimate_sample_size: payload.estimate?.sampleSize ?? null,
     })
     .select("id")
     .single();
@@ -130,7 +170,7 @@ Deno.serve(async (req) => {
       make: (payload.lookup as any)?.make ?? (payload.manualVehicle as any)?.make ?? null,
       model: (payload.lookup as any)?.model ?? (payload.manualVehicle as any)?.model ?? null,
       variant: (payload.lookup as any)?.variant ?? (payload.manualVehicle as any)?.variant ?? null,
-      model_year: (payload.lookup as any)?.modelYear ?? (payload.manualVehicle as any)?.modelYear ?? null,
+      model_year: sanitizeModelYear((payload.lookup as any)?.modelYear ?? (payload.manualVehicle as any)?.modelYear),
       first_registration_date: (payload.lookup as any)?.firstRegistrationDate ?? null,
       fuel_type: (payload.lookup as any)?.fuelType ?? (payload.manualVehicle as any)?.fuelType ?? null,
       transmission: (payload.lookup as any)?.transmission ?? (payload.manualVehicle as any)?.transmission ?? null,

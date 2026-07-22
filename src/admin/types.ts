@@ -72,6 +72,10 @@ export interface AdminLead {
     provider: string;
     isMock: boolean;
   } | null;
+  /** Udfyldt når leadet er en konkret "byt din bil"-forespørgsel startet fra en bils detaljeside. */
+  interestVehicle: { id: string; label: string; slug: string | null; priceDkk: number | null } | null;
+  /** Det automatisk beregnede skøn, kunden fik vist, inden leadet blev sendt (ikke bindende). */
+  estimate: { lowDkk: number; midDkk: number; highDkk: number; sampleSize: number } | null;
 }
 
 export interface AdminLeadDetail extends AdminLead {

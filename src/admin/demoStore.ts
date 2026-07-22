@@ -134,6 +134,8 @@ const DEMO_LEADS: AdminLeadDetail[] = [
     lostReason: null,
     contact: { name: "Test Testesen (TESTDATA)", phone: "+45 00 00 00 01", email: "test1@example.invalid", postalCode: "6700", city: "Esbjerg", preferredChannel: "phone", bestContactTime: "Eftermiddag", message: "Vil gerne sælge hurtigt." },
     vehicle: { make: "Volkswagen", model: "Golf", variant: "1.4 TSI", modelYear: 2017, fuelType: "Benzin", transmission: "Manuel", color: "Grå", provider: "mock", isMock: true },
+    interestVehicle: { id: "demo-rental-1", label: "Skoda Kamiq (TESTDATA)", slug: "skoda-octavia-combi-udlejning", priceDkk: 249900 },
+    estimate: { lowDkk: 65000, midDkk: 76000, highDkk: 87000, sampleSize: 1 },
     condition: { isDrivable: true, hasServiceBook: true, keyCount: 2, knownDamages: "Lille ridse på bagkofanger", smokeFree: true, hasOutstandingFinance: false, saleTimeline: "Hurtigst muligt" },
     consents: [
       { type: "processing", granted: true, version: "v0.1", channels: [], createdAt: new Date().toISOString() },
@@ -157,6 +159,8 @@ const DEMO_LEADS: AdminLeadDetail[] = [
     lostReason: null,
     contact: { name: "Demo Demosen (TESTDATA)", phone: "+45 00 00 00 02", email: "test2@example.invalid", postalCode: "7100", city: "Vejle", preferredChannel: "email", bestContactTime: "Formiddag", message: null },
     vehicle: { make: "Ford", model: "Focus", variant: "1.0 EcoBoost", modelYear: 2015, fuelType: "Benzin", transmission: "Manuel", color: "Blå", provider: "mock", isMock: true },
+    interestVehicle: null,
+    estimate: null,
     condition: { isDrivable: true, hasServiceBook: false, keyCount: 1, knownDamages: null, smokeFree: true, hasOutstandingFinance: true, saleTimeline: "Inden for en måned" },
     consents: [
       { type: "processing", granted: true, version: "v0.1", channels: [], createdAt: new Date().toISOString() },
@@ -183,6 +187,8 @@ const DEMO_LEADS: AdminLeadDetail[] = [
     lostReason: null,
     contact: { name: "Fiktiv Person (TESTDATA)", phone: "+45 00 00 00 03", email: "test3@example.invalid", postalCode: "6000", city: "Kolding", preferredChannel: "sms", bestContactTime: null, message: "Bilen står i carport." },
     vehicle: { make: "Toyota", model: "C-HR", variant: "1.8 Hybrid", modelYear: 2019, fuelType: "Hybrid", transmission: "Automatisk", color: "Sort", provider: "mock", isMock: true },
+    interestVehicle: null,
+    estimate: null,
     condition: { isDrivable: true, hasServiceBook: true, keyCount: 2, knownDamages: null, smokeFree: true, hasOutstandingFinance: false, saleTimeline: "Undersøger prisen" },
     consents: [{ type: "processing", granted: true, version: "v0.1", channels: [], createdAt: new Date().toISOString() }],
     attribution: { landingPage: "/saelg-din-bil", utmSource: "facebook", utmMedium: "paid_social", utmCampaign: "brand-demo", deviceType: "mobile" },

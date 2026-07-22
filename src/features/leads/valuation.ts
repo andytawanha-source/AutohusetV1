@@ -133,24 +133,23 @@ function conditionModifier(condition?: Partial<ConditionStepInput>): number {
   return Math.min(0.06, Math.max(-0.35, pct));
 }
 
-/** Lille, begrænset justering hvis vi har samme mærke/model i eget lager – aldrig eneste grundlag. */
-function ownStockSanityAdjustment(input: ValuationInput, stock: Vehicle[], modelBasedRetail: number): { factor: number; sampleSize: number } {
-  if (!input.make || !input.model) return { factor: 1, sampleSize: 0 };
+/**
+ * Gennemsnitlig udsalgspris for sammenlignelige biler (samme mærke/model) i eget lager.
+ * Bruges som en reel, verificeret "sandhedstjek" mod deprecieringsmodellen – ikke kun en
+ * lille kosmetisk justering, da modellen kan ramme helt skævt hvis et enkelt input
+ * (fx forkert/manglende km-tal eller årgang fra opslaget) er forkert.
+ */
+function stockComparable(input: ValuationInput, stock: Vehicle[]): { avg: number; count: number } | null {
+  if (!input.make || !input.model) return null;
   const matches = stock.filter(
     (v) =>
       v.priceDkk !== null &&
       v.make.toLowerCase() === input.make!.toLowerCase() &&
       v.model.toLowerCase() === input.model!.toLowerCase()
   );
-  if (matches.length === 0) return { factor: 1, sampleSize: 0 };
-
-  const avgStockPrice = matches.reduce((sum, v) => sum + (v.priceDkk ?? 0), 0) / matches.length;
-  // Lagerprisen er udsalgspris (retail), ligesom modelBasedRetail – sammenlignelige størrelser.
-  const impliedFactor = avgStockPrice / Math.max(1, modelBasedRetail);
-  // Træk kun 15 % i retning af det, egne biler antyder – for at undgå at et enkelt,
-  // atypisk lagereksemplar (eller manglende sammenlignelige biler) kan give urealistiske hop.
-  const blended = 1 + (impliedFactor - 1) * 0.15;
-  return { factor: Math.min(1.15, Math.max(0.85, blended)), sampleSize: matches.length };
+  if (matches.length === 0) return null;
+  const avg = matches.reduce((sum, v) => sum + (v.priceDkk ?? 0), 0) / matches.length;
+  return { avg, count: matches.length };
 }
 
 export function estimateTradeInValue(input: ValuationInput, stock: Vehicle[]): ValuationEstimate {
@@ -165,12 +164,27 @@ export function estimateTradeInValue(input: ValuationInput, stock: Vehicle[]): V
   }
   if (input.fuelType === "el") anchorNewPrice *= 1.08;
 
-  let retailEstimate = anchorNewPrice * depreciationFactor(ageYears);
-  retailEstimate *= 1 + mileageAdjustment(ageYears, input.mileageKm);
-  retailEstimate = Math.max(3_000, retailEstimate);
+  let modelRetail = anchorNewPrice * depreciationFactor(ageYears);
+  modelRetail *= 1 + mileageAdjustment(ageYears, input.mileageKm);
+  modelRetail = Math.max(3_000, modelRetail);
 
-  const { factor: stockFactor, sampleSize } = ownStockSanityAdjustment(input, stock, retailEstimate);
-  retailEstimate *= stockFactor;
+  // Har vi sammenlignelige biler på egen plads, vægtes udsalgsprisen for DEM tungt ind i
+  // det endelige skøn – jo flere sammenlignelige biler, jo mere vægt. Det sikrer at et
+  // forkert/manglende enkeltinput til deprecieringskurven (fx en forkert km-værdi fra
+  // nummerpladeopslaget) ikke kan resultere i et absurd lavt "skambud", som får kunden
+  // til at føle sig taget useriøst og aldrig svare tilbage. Derudover et hårdt gulv:
+  // det samlede skøn må aldrig havne under 40 % af hvad sammenlignelige biler rent
+  // faktisk sælges for hos os.
+  const comparable = stockComparable(input, stock);
+  let retailEstimate = modelRetail;
+  let sampleSize = 0;
+  if (comparable) {
+    sampleSize = comparable.count;
+    const stockWeight = comparable.count >= 3 ? 0.75 : comparable.count === 2 ? 0.65 : 0.55;
+    retailEstimate = modelRetail * (1 - stockWeight) + comparable.avg * stockWeight;
+    retailEstimate = Math.max(retailEstimate, comparable.avg * 0.4);
+  }
+  retailEstimate = Math.max(3_000, retailEstimate);
 
   // Byttepris/indbytningspris ligger under udsalgsprisen (klargøring, avance, risiko).
   const TRADE_IN_FACTOR = 0.72;
@@ -178,10 +192,14 @@ export function estimateTradeInValue(input: ValuationInput, stock: Vehicle[]): V
   tradeInMid *= 1 + conditionModifier(input.condition);
   tradeInMid = Math.max(1_500, tradeInMid);
 
+  // Bredere spænd når vi IKKE har sammenlignelige biler at holde skønnet op imod (lavere
+  // sikkerhed i tallet) – smallere spænd når vi har mindst én reel, verificeret sammenligning.
+  const spread = sampleSize > 0 ? 0.15 : 0.22;
+
   return {
-    low: round(tradeInMid * 0.85),
+    low: round(tradeInMid * (1 - spread)),
     mid: round(tradeInMid),
-    high: round(tradeInMid * 1.15),
+    high: round(tradeInMid * (1 + spread)),
     sampleSize,
     basis: "depreciation_model",
   };

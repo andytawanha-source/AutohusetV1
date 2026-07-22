@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, X } from "lucide-react";
 import { WizardProgress } from "@/components/sell/WizardProgress";
 import { StepPlate } from "@/components/sell/StepPlate";
 import { StepConfirmVehicle } from "@/components/sell/StepConfirmVehicle";
 import { StepCondition } from "@/components/sell/StepCondition";
+import { StepEstimateTeaser } from "@/components/sell/StepEstimateTeaser";
 import { StepContact } from "@/components/sell/StepContact";
 import { lookupPlate } from "@/features/plate-lookup/client";
 import { submitSellCarLead } from "@/features/leads/api";
@@ -23,7 +24,7 @@ import { formatPrice } from "@/lib/format";
 import { useBrand } from "@/app/BrandProvider";
 import { track } from "@/features/tracking/track";
 
-const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Kontakt"];
+const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Skøn", "Kontakt"];
 
 /**
  * "Hvad er min bil værd?" – byttebilsvurdering startet direkte fra en bils detaljeside.
@@ -51,6 +52,14 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
   const { data: stock } = useInventory();
   const headingRef = useRef<HTMLDivElement>(null);
   const startTracked = useRef(false);
+
+  // Beregnes løbende, så vi kan vise et bredt skøn allerede efter Stand-trinnet – FØR vi
+  // beder om kontaktoplysninger. Se StepEstimateTeaser.tsx.
+  const liveEstimate = useMemo(() => {
+    const input = valuationInputFromLookup(state.lookup, state.manualVehicle, state.plate?.mileageKm ?? 0, state.condition);
+    return estimateTradeInValue(input, stock ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.lookup, state.manualVehicle, state.plate?.mileageKm, state.condition, stock]);
 
   useEffect(() => {
     if (!startTracked.current) {
@@ -118,14 +127,12 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
     setSubmitError(null);
     setIsSubmitting(true);
 
-    const input = valuationInputFromLookup(state.lookup, state.manualVehicle, state.plate?.mileageKm ?? 0, state.condition);
-    const result_ = estimateTradeInValue(input, stock ?? []);
     const estimate: NonNullable<SellCarState["estimate"]> = {
-      lowDkk: result_.low,
-      midDkk: result_.mid,
-      highDkk: result_.high,
-      sampleSize: result_.sampleSize,
-      basis: result_.basis,
+      lowDkk: liveEstimate.low,
+      midDkk: liveEstimate.mid,
+      highDkk: liveEstimate.high,
+      sampleSize: liveEstimate.sampleSize,
+      basis: liveEstimate.basis,
     };
     const nextState: SellCarState = { ...state, contact, estimate };
     setState(nextState);
@@ -258,12 +265,15 @@ export function TradeInModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
                 />
               )}
               {step === 3 && (
+                <StepEstimateTeaser estimate={liveEstimate} onContinue={() => goTo(4)} onBack={() => goTo(2)} />
+              )}
+              {step === 4 && (
                 <StepContact
                   defaultValues={state.contact}
                   isSubmitting={isSubmitting}
                   submitError={submitError}
                   onSubmit={handleContactSubmit}
-                  onBack={() => goTo(2)}
+                  onBack={() => goTo(3)}
                 />
               )}
             </>

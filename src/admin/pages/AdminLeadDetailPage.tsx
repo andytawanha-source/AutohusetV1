@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, FlaskConical, Loader2, Send, UserCheck } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, FlaskConical, Loader2, Send, UserCheck } from "lucide-react";
 import { useAddLeadNote, useAdminLeadDetail, useUpdateLead } from "../api";
 import { LEAD_STATUS_LABELS, type AdminLeadStatus } from "../types";
-import { formatDateTime, formatMileage } from "@/lib/format";
+import { formatDateTime, formatMileage, formatPrice } from "@/lib/format";
 
 function Row({ label, value }: { label: string; value?: string | number | boolean | null }) {
   if (value === undefined || value === null || value === "") return null;
@@ -49,6 +49,11 @@ export default function AdminLeadDetailPage() {
         <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-sm font-medium text-brand-primary">
           {LEAD_STATUS_LABELS[lead.status]}
         </span>
+        {lead.interestVehicle && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900">
+            <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden /> Byttebil
+          </span>
+        )}
         {lead.vehicle?.isMock && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
             <FlaskConical className="h-3.5 w-3.5" aria-hidden /> Mock-opslag
@@ -71,6 +76,39 @@ export default function AdminLeadDetailPage() {
               <Row label="Datakilde" value={lead.vehicle?.provider} />
             </dl>
           </section>
+
+          {lead.interestVehicle && (
+            <section className="rounded-xl bg-emerald-50 p-5 ring-1 ring-emerald-200">
+              <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-emerald-900">
+                <ArrowLeftRight className="h-5 w-5" aria-hidden /> Ønsker at bytte til
+              </h2>
+              <dl>
+                <div className="flex justify-between gap-4 border-b border-emerald-200/60 py-1.5 text-sm">
+                  <dt className="text-emerald-900/70">Bil</dt>
+                  <dd className="text-right font-medium">
+                    {lead.interestVehicle.slug ? (
+                      <Link to={`/biler/${lead.interestVehicle.slug}`} target="_blank" className="text-emerald-900 underline hover:no-underline">
+                        {lead.interestVehicle.label}
+                      </Link>
+                    ) : (
+                      lead.interestVehicle.label
+                    )}
+                  </dd>
+                </div>
+                <Row label="Pris" value={lead.interestVehicle.priceDkk !== null ? formatPrice(lead.interestVehicle.priceDkk) : null} />
+              </dl>
+              {lead.estimate && (
+                <p className="mt-3 text-sm text-emerald-900">
+                  Kunden fik vist et automatisk skøn på byttebilen på{" "}
+                  <strong>
+                    {formatPrice(lead.estimate.lowDkk)} – {formatPrice(lead.estimate.highDkk)}
+                  </strong>{" "}
+                  (baseret på {lead.estimate.sampleSize} sammenlignelig{lead.estimate.sampleSize === 1 ? "" : "e"} bil
+                  {lead.estimate.sampleSize === 1 ? "" : "er"} på lager). Dette er ikke det bindende bud.
+                </p>
+              )}
+            </section>
+          )}
 
           {c && (
             <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">

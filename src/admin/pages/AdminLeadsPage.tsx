@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, Download } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Download } from "lucide-react";
 import { downloadCsv, leadsToCsv, useAdminInquiries, useAdminLeads } from "../api";
 import { INQUIRY_TYPE_LABELS, LEAD_STATUS_LABELS, type AdminLeadStatus, type UnifiedLeadRow } from "../types";
 import { formatDateTime } from "@/lib/format";
@@ -39,6 +39,17 @@ export default function AdminLeadsPage() {
   const [sort, setSort] = useState<SortKey>("newest");
 
   const isLoading = leadsLoading || inquiriesLoading;
+
+  // Til at vise et tydeligt "Byttebil"-badge i listen uden at ændre den delte
+  // UnifiedLeadRow-type – kun sell_car-rækker (kilde: leads-tabellen) kan have en
+  // interesse-bil, så et opslag på id er tilstrækkeligt.
+  const interestVehicleByLeadId = useMemo(() => {
+    const map = new Map<string, { label: string }>();
+    for (const l of leads ?? []) {
+      if (l.interestVehicle) map.set(l.id, { label: l.interestVehicle.label });
+    }
+    return map;
+  }, [leads]);
 
   const rows: UnifiedLeadRow[] = useMemo(() => {
     const leadRows: UnifiedLeadRow[] = (leads ?? []).map((l) => ({
@@ -170,8 +181,25 @@ export default function AdminLeadsPage() {
                     </span>
                   )}
                 </td>
-                <td className="p-3 text-brand-ink/70">{row.typeLabel}</td>
-                <td className="p-3">{row.vehicleLabel ?? "–"}</td>
+                <td className="p-3 text-brand-ink/70">
+                  {row.typeLabel}
+                  {interestVehicleByLeadId.has(row.id) && (
+                    <span
+                      className="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900"
+                      title={`Ønsker at bytte til: ${interestVehicleByLeadId.get(row.id)!.label}`}
+                    >
+                      <ArrowLeftRight className="h-3 w-3" aria-hidden /> Byttebil
+                    </span>
+                  )}
+                </td>
+                <td className="p-3">
+                  {row.vehicleLabel ?? "–"}
+                  {interestVehicleByLeadId.has(row.id) && (
+                    <span className="block text-xs text-emerald-700">
+                      → {interestVehicleByLeadId.get(row.id)!.label}
+                    </span>
+                  )}
+                </td>
                 <td className="p-3">
                   {row.contactName}
                   <span className="block text-xs text-brand-ink/50">{row.contactPhone}</span>
