@@ -24,7 +24,7 @@ import { formatPrice } from "@/lib/format";
 import { useBrand } from "@/app/BrandProvider";
 import { track } from "@/features/tracking/track";
 
-const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Skøn", "Kontakt"];
+const STEP_LABELS = ["Nummerplade", "Specifikationer", "Stand", "Vurdering", "Kontakt"];
 
 /**
  * "Hvad er min bil værd?" – byttebilsvurdering startet direkte fra en bils detaljeside.

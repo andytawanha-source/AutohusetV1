@@ -17,7 +17,6 @@ const LEGAL_LINKS = [
 const NAV_LINKS = [
   { to: "/biler", label: "Biler" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
-  { to: "/finansiering", label: "Finansiering" },
   { to: "/biludlejning", label: "Biludlejning" },
   { to: "/om-os", label: "Om os" },
   { to: "/kontakt", label: "Kontakt" },

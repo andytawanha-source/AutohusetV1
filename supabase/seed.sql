@@ -15,10 +15,10 @@ insert into public.organizations (id, name, slug) values
 insert into public.brands (organization_id, brand_key, name, legal_name, cvr, address, phone, email, lead_email, lead_reference_prefix, lead_response_time, colors, opening_hours, seo) values
   ('11111111-1111-1111-1111-111111111111', 'autohuset-vest', 'Autohuset Vest',
    '[AUTOHUSET VEST JURIDISK NAVN]', '[AUTOHUSET VEST CVR]', '[AUTOHUSET VEST ADRESSE]',
-   '[AUTOHUSET VEST TELEFON]', '[AUTOHUSET VEST E-MAIL]', '[AUTOHUSET VEST LEAD-E-MAIL]',
+   '[AUTOHUSET VEST TELEFON]', 'info@autohusetvest.dk', 'info@autohusetvest.dk',
    'AVEST', 'inden for 24 timer på hverdage',
    '{"primary":"#0D3B45","secondary":"#164E63","accent":"#5BC0EB","surface":"#F5F2EA","surfaceWarm":"#E8D7B5","ink":"#102A33"}',
-   '[{"label":"Mandag–fredag","hours":"09:00–17:30"},{"label":"Lørdag","hours":"10:00–15:00"},{"label":"Søndag","hours":"Lukket"}]',
+   '[{"label":"Mandag–fredag","hours":"09:00–17:30"},{"label":"Lørdag","hours":"Efter aftale"},{"label":"Søndag","hours":"Efter aftale"}]',
    '{"defaultTitle":"Autohuset Vest – Kvalitetsbiler og fair bilvurdering","titleTemplate":"%s | Autohuset Vest"}'),
   ('22222222-2222-2222-2222-222222222222', 'autohuset-v', 'Autohuset V',
    '[AUTOHUSET V JURIDISK NAVN]', '[AUTOHUSET V CVR]', '[AUTOHUSET V ADRESSE]',

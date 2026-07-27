@@ -29,6 +29,20 @@ Klient (StepPlate) → Edge Function plate-lookup → provider (mock | kommercie
 
 Der hentes og vises aldrig private ejeroplysninger — kun tekniske køretøjsdata.
 
+# Automatisk billager (Bilbasen + One2move)
+
+To Edge Functions henter Autohuset Vests egne annoncer fra eksterne sider og synkroniserer dem ind i `vehicles`, så "Biler til salg" og "Biludlejning" ikke skal vedligeholdes to steder. Se kildekode og kommentarer i selve funktionerne for parsing-detaljer.
+
+- **`supabase/functions/sync-bilbasen`** – henter Bilbasen-forhandlersiden (`BILBASEN_DEALER_URL`, default `.../bilforhandler-autohuset-v-aps-id22288`), parser annoncerne (titel, km, årgang, pris) og opretter/opdaterer dem som `listing_type = 'sale'`. Annoncer der forsvinder fra Bilbasen-siden markeres `status = 'sold'` i stedet for at blive slettet.
+- **`supabase/functions/sync-one2move-rental`** – henter One2move-afdelingssiden (`ONE2MOVE_DEPARTMENT_URL`, default Rødovre N-afdelingen) og opretter/opdaterer lejebiler som `listing_type = 'rental'` + `rental_details.price_per_day_dkk`. Biltyper der forsvinder markeres `archived`/`maintenance`.
+
+**Opsætning:**
+1. Kør migrationen `20260728000001_external_sync.sql` (tilføjer `external_source`/`external_id`/`external_url`/`last_synced_at` på `vehicles`).
+2. Sæt secrets: `supabase secrets set BILBASEN_ORGANIZATION_ID=<Autohuset Vests organization_id i vehicles-tabellen>`.
+3. Udrul: `supabase functions deploy sync-bilbasen` og `supabase functions deploy sync-one2move-rental`.
+4. **Planlæg periodisk kørsel** (funktionerne kører kun, når de kaldes) – nemmeste løsning er Supabase Dashboard → Edge Functions → *Schedule* (cron-udtryk, fx `0 */6 * * *` for hver 6. time), alternativt `pg_cron` + `pg_net` med et scheduled `net.http_post` mod funktions-URL'en og en `Authorization: Bearer <service-role-key>`-header.
+5. **Vigtigt før produktion:** Begge sider parses med regex over den offentlige HTML, da hverken Bilbasen eller One2move stiller et officielt API til rådighed for denne brug. Det er skrøbeligt over for layoutændringer (justér mønstrene i funktionerne, hvis en synkronisering pludselig finder 0 biler) og bør afklares juridisk med begge parter (Bilbasens og One2moves brugsvilkår) inden det køres i stor skala. Overvej desuden ikke at kalde funktionerne oftere end nødvendigt for at være en god "nabo" for kildernes servere.
+
 # E-mailintegration
 
 Adapter i `supabase/functions/_shared/email.ts`: `mock` (logger til konsol), `resend`, `postmark`. Vælges med `EMAIL_PROVIDER` + `EMAIL_API_KEY` + `EMAIL_FROM_ADDRESS` (verificér afsenderdomæne med SPF/DKIM hos leverandøren). Alle afsendelser logges i `email_logs` med status, provider-ID, fejl og forsøg. Leadmodtager pr. brand: `brands.lead_email` (fallback: `ADMIN_LEAD_EMAIL`-secret). Store billeder vedhæftes aldrig — forhandleren ser dem via signerede links i adminpanelet.

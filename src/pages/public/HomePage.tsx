@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BadgeCheck, Banknote, Clock, HandCoins, MapPin, ShieldCheck, Wrench } from "lucide-react";
+import { ArrowRight, Banknote, Clock, MapPin, ShieldCheck, Wrench } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { HeroSection } from "@/components/home/HeroSection";
 import { PartnerLogos } from "@/components/home/PartnerLogos";
 import { AnimatedCounter } from "@/components/home/AnimatedCounter";
 import { FaqAccordion } from "@/components/home/FaqAccordion";
+import { TrustpilotReviews } from "@/components/home/TrustpilotReviews";
 import { VehicleGrid, VehicleGridSkeleton } from "@/components/vehicles/VehicleGrid";
 import { useInventory } from "@/features/vehicles/api";
 import { getBrandMedia } from "@/config/brandMedia";
@@ -57,9 +58,8 @@ export default function HomePage() {
             <p className="mt-1 text-sm text-brand-ink/60">biler på lager</p>
           </div>
           <div>
-            {/* Beregnet fra stiftelsen af Autohuset Vest ApS (15.04.2024) */}
             <p className="font-display text-3xl font-bold text-brand-primary">
-              <AnimatedCounter value={new Date().getFullYear() - 2024} />
+              <AnimatedCounter value={15} />
             </p>
             <p className="mt-1 text-sm text-brand-ink/60">års erfaring</p>
           </div>
@@ -143,7 +143,7 @@ export default function HomePage() {
             {[
               { icon: ShieldCheck, title: "Tryg handel", text: "Gennemsigtige priser og ordentlige vilkår – ingen skjulte gebyrer." },
               { icon: Wrench, title: "Klargjorte biler", text: "Alle biler er gennemgået og klargjort inden levering." },
-              { icon: Banknote, title: "Nem finansiering", text: "Vi finder en finansieringsløsning, der passer til din økonomi." },
+              { icon: Banknote, title: "Fair priser", text: "Ærlig prissætning uden overraskelser – det du ser, er det du betaler." },
               { icon: Clock, title: "Hurtigt svar", text: `Vi svarer på henvendelser ${brand.leadResponseTime}.` },
             ].map(({ icon: Icon, title, text }) => (
               <li key={title} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-brand-ink/5">
@@ -156,64 +156,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Anmeldelser – tydelige placeholders */}
-      <section className="bg-brand-surface-warm/40 py-14" aria-labelledby="reviews-heading">
-        <div className="container">
-          <h2 id="reviews-heading" className="mb-6 font-display text-2xl font-bold text-brand-primary lg:text-3xl">
-            Det siger vores kunder
-          </h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <blockquote key={i} className="rounded-xl border-2 border-dashed border-brand-ink/15 bg-white/60 p-5 text-sm text-brand-ink/50">
-                <p>[PLACEHOLDER – rigtig kundeanmeldelse indsættes efter godkendelse. Dette er ikke en rigtig anmeldelse.]</p>
-                <footer className="mt-3 font-medium">[Kundenavn]</footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Finansiering */}
-      <section className="py-14" aria-labelledby="finance-heading">
-        <div className="container grid items-center gap-8 lg:grid-cols-[1fr_1fr_0.9fr] lg:gap-10">
-          <div>
-            <h2 id="finance-heading" className="font-display text-2xl font-bold text-brand-primary lg:text-3xl">
-              Finansiering, der passer til dig
-            </h2>
-            <p className="mt-3 leading-relaxed text-brand-ink/70">
-              Vi samarbejder med anerkendte finansieringspartnere og skræddersyr en løsning ud fra din
-              økonomi – ofte med svar samme dag. Tag din nuværende bil med i handlen og brug den som udbetaling.
-            </p>
-            <Link to="/finansiering" className="mt-5 inline-flex items-center gap-2 font-semibold text-brand-primary hover:underline">
-              Læs mere om finansiering <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <p className="mt-4 text-xs text-brand-ink/50">
-              Finansieringseksempler er vejledende og forudsætter kreditgodkendelse. <Link to="/finansieringsforbehold" className="underline">Se forbehold</Link>.
-            </p>
-          </div>
-          <img
-            src={media.financeConsultation.src}
-            width={media.financeConsultation.width}
-            height={media.financeConsultation.height}
-            alt={media.financeConsultation.alt}
-            loading="lazy"
-            decoding="async"
-            className="aspect-[4/3] w-full rounded-2xl object-cover shadow-sm ring-1 ring-brand-ink/5"
-          />
-          <ul className="space-y-3">
-            {[
-              { icon: HandCoins, text: "Lav udbetaling og fleksibel løbetid" },
-              { icon: BadgeCheck, text: "Svar på din ansøgning – ofte samme dag" },
-              { icon: Banknote, text: "Brug din nuværende bil som udbetaling" },
-            ].map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-brand-ink/5">
-                <Icon className="h-6 w-6 shrink-0 text-brand-accent" aria-hidden />
-                <span className="text-sm font-medium">{text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <TrustpilotReviews />
 
       {/* Om + lokation */}
       <section className="bg-brand-gradient py-14 text-white" aria-labelledby="about-heading">
@@ -259,9 +202,17 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 rounded-md bg-white/10 p-3 text-xs text-white/60">
-                Kortvisning kræver samtykke til funktionelle cookies og aktiveres via cookieindstillingerne (Fase 5).
-              </p>
+              <div className="mt-4 overflow-hidden rounded-lg ring-1 ring-white/10">
+                <iframe
+                  title={`Kort over ${brand.name}`}
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(brand.contact.address)}&output=embed`}
+                  width="100%"
+                  height="220"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
             </div>
           </div>
         </div>

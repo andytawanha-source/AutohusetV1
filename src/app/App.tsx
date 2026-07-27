@@ -16,7 +16,6 @@ const VehicleDetailPage = lazy(() => import("@/pages/public/VehicleDetailPage"))
 const SoldVehiclesPage = lazy(() => import("@/pages/public/SoldVehiclesPage"));
 const SellCarPage = lazy(() => import("@/pages/public/SellCarPage"));
 const SellCarThanksPage = lazy(() => import("@/pages/public/SellCarThanksPage"));
-const FinancingPage = lazy(() => import("@/pages/public/FinancingPage"));
 const GarantiPage = lazy(() => import("@/pages/public/GarantiPage"));
 const RentalPage = lazy(() => import("@/pages/public/RentalPage"));
 const RentalCarDetailPage = lazy(() => import("@/pages/public/RentalCarDetailPage"));
@@ -64,7 +63,6 @@ export function App() {
                     <Route path="/solgte-biler" element={<SoldVehiclesPage />} />
                     <Route path="/saelg-din-bil" element={<SellCarPage />} />
                     <Route path="/saelg-din-bil/tak/:reference" element={<SellCarThanksPage />} />
-                    <Route path="/finansiering" element={<FinancingPage />} />
                     <Route path="/garanti" element={<GarantiPage />} />
                     <Route path="/biludlejning" element={<RentalPage />} />
                     <Route path="/biludlejning/:slug" element={<RentalCarDetailPage />} />

@@ -1,16 +1,14 @@
 import { ArrowLeft, ArrowRight, Info } from "lucide-react";
-import { formatPrice } from "@/lib/format";
 import type { ValuationEstimate } from "@/features/leads/valuation";
 
 /**
- * Viser et hurtigt, bredt skøn ("cirka det, tilsvarende biler er værd") lige efter
- * Stand-trinnet – FØR vi beder om kontaktoplysninger. Formålet er udelukkende at sætte
- * forventninger tidligt, så kunden ikke føler sig taget useriøst af et overraskende tal
- * til sidst. Selve leadet indsendes stadig først når kontakt+samtykke er givet (se
- * TradeInModal.tsx) – denne skærm sender intet og gemmer intet.
+ * Vises lige efter Stand-trinnet – FØR vi beder om kontaktoplysninger. Viser bevidst
+ * ikke noget prisoverslag til kunden; det interne estimat (estimate) beregnes og
+ * gemmes stadig som reference til sælgeren (se TradeInModal.tsx), men kommunikeres
+ * ikke i UI'en. Selve leadet indsendes stadig først når kontakt+samtykke er givet –
+ * denne skærm sender intet og gemmer intet.
  */
 export function StepEstimateTeaser({
-  estimate,
   onContinue,
   onBack,
 }: {
@@ -21,26 +19,17 @@ export function StepEstimateTeaser({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-xl font-bold text-brand-primary">Dit foreløbige skøn</h2>
+        <h2 className="font-display text-xl font-bold text-brand-primary">Tak for oplysningerne</h2>
         <p className="mt-1 text-sm text-brand-ink/70">
-          Baseret på et hurtigt gennemsyn af tilsvarende biler og de oplysninger, du har angivet indtil nu.
+          Vi har det, vi skal bruge, for at kigge nærmere på din bil.
         </p>
       </div>
 
-      <div className="rounded-2xl bg-brand-primary/5 p-6 text-center ring-1 ring-brand-primary/10">
-        <p className="text-sm font-medium text-brand-ink/70">Tilsvarende biler er typisk værd</p>
-        <p className="mt-2 font-display text-3xl font-bold text-brand-primary sm:text-4xl">
-          {formatPrice(estimate.low)} – {formatPrice(estimate.high)}
-        </p>
-        <p className="mt-1 text-sm text-brand-ink/60">Cirka {formatPrice(estimate.mid)} i gennemsnit</p>
-      </div>
-
-      <div className="flex gap-3 rounded-md bg-amber-50 p-4 text-sm text-amber-900">
-        <Info className="h-5 w-5 shrink-0" aria-hidden />
+      <div className="flex gap-3 rounded-md bg-brand-primary/5 p-4 text-sm text-brand-ink/80 ring-1 ring-brand-primary/10">
+        <Info className="h-5 w-5 shrink-0 text-brand-primary" aria-hidden />
         <p>
-          Dette er et <strong>meget bredt, automatisk skøn</strong> – det bliver mere præcist, når du har udfyldt
-          dine kontaktoplysninger, og en af vores bilsælgere har gennemgået din bil. Det er{" "}
-          <strong>ikke et bindende tilbud</strong>.
+          Vi kontakter dig ift. hvad du kan få for din byttebil, når en af vores bilsælgere har gennemgået
+          oplysningerne. Det er <strong>ikke et bindende tilbud</strong>.
         </p>
       </div>
 

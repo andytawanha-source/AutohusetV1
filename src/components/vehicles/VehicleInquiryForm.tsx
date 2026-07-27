@@ -93,7 +93,7 @@ export function VehicleInquiryForm({
           <Repeat className="mx-auto h-8 w-8 text-brand-accent" aria-hidden />
           <h3 className="mt-2 font-display text-base font-bold text-brand-primary">Hvad er din bil værd?</h3>
           <p className="mt-1 text-sm text-brand-ink/70">
-            Indtast din nummerplade, svar på et par spørgsmål om bilens stand, og få et foreløbigt skøn med det
+            Indtast din nummerplade, svar på et par spørgsmål om bilens stand, og få en foreløbig vurdering med det
             samme. Vi vender bagefter tilbage med det endelige, uforpligtende bud – telefonisk eller på mail.
           </p>
           <button

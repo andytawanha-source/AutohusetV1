@@ -81,7 +81,7 @@ export function StepConfirmVehicle({
           <p className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
             Opslaget mangler {!lookup.modelYear && !lookup.fuelType ? "årgang og drivmiddel" : !lookup.modelYear ? "årgang" : "drivmiddel"}
-            {" "}– vi beder dig lige udfylde det, så vi kan give dig et retvisende skøn.
+            {" "}– vi beder dig lige udfylde det, så vi kan give dig en retvisende vurdering.
           </p>
         )}
 
