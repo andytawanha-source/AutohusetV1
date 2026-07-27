@@ -14,6 +14,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { parse as parseHtml } from "npm:node-html-parser@6";
 import { handleOptions, jsonResponse } from "../_shared/cors.ts";
 
 const DEPARTMENT_URL = Deno.env.get("ONE2MOVE_DEPARTMENT_URL") ??
@@ -51,40 +52,47 @@ type ParsedCar = {
 /**
  * One2moves afdelingsside er server-renderet HTML uden stabile id'er pr. biltype (kun
  * navn + kategori + årgang), så det bruges som nøgle ved synkronisering (se
- * externalId nedenfor). Justér mønstrene her (markeret TODO), hvis One2move ændrer
- * sidens opbygning.
+ * externalId nedenfor). Struktur verificeret direkte i browserens DOM (juli 2026):
+ *   .item.car-box                          → ét bilkort
+ *     .top-info                            → titel (fx "VW Up")
+ *     .lower-info .col-6 (2 stk.)          → [kategori, "Årgang <år>"]
+ *     .car-price-top                       → "fra <pris> kr. pr. dag"
+ *     .car-feature .col-9 (flere stk.)     → "N Døre", "N Sæder", drivmiddel, gearkasse, ...
+ * Justér selectorerne her (markeret TODO), hvis One2move ændrer sidens opbygning –
+ * check nemmest ved at inspicere DOM'en på afdelingssiden i browserens devtools.
  */
 function parseDepartmentPage(html: string): ParsedCar[] {
+  const root = parseHtml(html);
   const cars: ParsedCar[] = [];
 
-  // Hvert bilkort starter med "<billede alt="<titel>">" efterfulgt af titel, kategori
-  // ("Lille personbil" mv.), "Årgang <år>" og "fra <pris>,00 kr. pr. dag".
-  const cardRe =
-    /alt="([^"]+)"[^>]*>\s*([^\n<]+)\s*\n\s*([^\n<]+)\s*\n\s*Årgang\s*(\d{4})\s*\n\s*fra\s*([\d.,]+)\s*kr\.\s*pr\.\s*dag/gi;
-
-  for (const m of html.matchAll(cardRe)) {
-    const [, , titleRaw, categoryRaw, yearRaw, priceRaw] = m;
-    const title = titleRaw.trim();
+  const cardEls = root.querySelectorAll(".item.car-box");
+  for (const card of cardEls) {
+    const title = card.querySelector(".top-info")?.textContent.trim();
     if (!title) continue;
 
-    // Yderligere info (døre/sæder/drivmiddel/gearkasse) findes i et vindue lige efter
-    // kortet, adskilt af linjeskift: "<n> Døre", "<n> Sæder", "Benzin"/"Diesel"/"El",
-    // "Manuel"/"Automatgear".
-    const windowText = html.slice(m.index ?? 0, (m.index ?? 0) + 1500);
-    const doorsMatch = windowText.match(/(\d+)\s*Døre/i);
-    const seatsMatch = windowText.match(/(\d+)\s*Sæder/i);
-    const fuelMatch = windowText.match(/\b(Benzin|Diesel|El|Hybrid)\b/i);
-    const gearMatch = windowText.match(/\b(Manuel|Automatgear)\b/i);
+    const infoCells = card.querySelectorAll(".lower-info .col-6").map((c) => c.textContent.trim());
+    const yearCell = infoCells.find((c) => /Årgang/i.test(c));
+    const category = infoCells.find((c) => c !== yearCell) ?? null;
+    const yearMatch = yearCell?.match(/(\d{4})/);
+
+    const priceText = card.querySelector(".car-price-top")?.textContent ?? "";
+    const priceMatch = priceText.replace(/\s+/g, " ").match(/([\d.,]+)\s*kr/);
+
+    const featureTexts = card.querySelectorAll(".car-feature .col-9").map((c) => c.textContent.replace(/\s+/g, " ").trim());
+    const doorsText = featureTexts.find((t) => /Døre/i.test(t));
+    const seatsText = featureTexts.find((t) => /Sæder/i.test(t));
+    const fuelText = featureTexts.find((t) => /^(Benzin|Diesel|El|Hybrid)$/i.test(t));
+    const gearText = featureTexts.find((t) => /^(Manuel|Automatgear)$/i.test(t));
 
     cars.push({
       title,
-      category: categoryRaw.trim() || null,
-      modelYear: Number(yearRaw),
-      pricePerDayDkk: Number(priceRaw.replace(/\./g, "").replace(",", ".")),
-      doors: doorsMatch ? Number(doorsMatch[1]) : null,
-      seats: seatsMatch ? Number(seatsMatch[1]) : null,
-      fuelType: fuelMatch ? fuelMatch[1] : null,
-      transmission: gearMatch ? gearMatch[1] : null,
+      category,
+      modelYear: yearMatch ? Number(yearMatch[1]) : null,
+      pricePerDayDkk: priceMatch ? Number(priceMatch[1].replace(/\./g, "").replace(",", ".")) : null,
+      doors: doorsText?.match(/\d+/) ? Number(doorsText.match(/\d+/)![0]) : null,
+      seats: seatsText?.match(/\d+/) ? Number(seatsText.match(/\d+/)![0]) : null,
+      fuelType: fuelText ?? null,
+      transmission: gearText ?? null,
     });
   }
 

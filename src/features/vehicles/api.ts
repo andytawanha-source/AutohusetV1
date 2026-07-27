@@ -3,7 +3,7 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { resolveBrandKey } from "@/config/brands";
 import { getDemoVehicles } from "./demoData";
 import { applyFilters, sortVehicles, type SortKey, type VehicleFilters } from "./filters";
-import type { Vehicle, VehicleImage } from "./types";
+import type { RentalDetails, Vehicle, VehicleImage } from "./types";
 
 /**
  * Dataadgang for biler. To tilstande:
@@ -109,6 +109,70 @@ const INVENTORY_KEY = ["vehicles", "public-inventory"];
 
 export function useInventory() {
   return useQuery({ queryKey: INVENTORY_KEY, queryFn: fetchAllPublicVehicles });
+}
+
+export type RentalVehicle = Vehicle & { rentalDetails: RentalDetails | null };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRentalDetails(row: any): RentalDetails {
+  return {
+    pricePerDayDkk: row.price_per_day_dkk,
+    pricePerWeekDkk: row.price_per_week_dkk,
+    pricePerMonthDkk: row.price_per_month_dkk,
+    depositDkk: row.deposit_dkk,
+    includedKmPerDay: row.included_km_per_day,
+    extraKmPriceDkk: row.extra_km_price_dkk,
+    minAge: row.min_age,
+    licenseRequirement: row.license_requirement,
+    availabilityStatus: row.availability_status,
+    pickupLocation: row.pickup_location,
+    insuranceInfo: row.insurance_info,
+    extraFeesText: row.extra_fees_text,
+  };
+}
+
+/**
+ * Lejebiler (listing_type = 'rental'), fx synkroniseret automatisk fra One2move (se
+ * supabase/functions/sync-one2move-rental). I demo-mode (Supabase ikke konfigureret)
+ * returneres en tom liste – der er ikke separate lejebil-demodata.
+ */
+async function fetchAllPublicRentalVehicles(): Promise<RentalVehicle[]> {
+  if (!isSupabaseConfigured) return [];
+  const orgId = await fetchOrganizationId();
+  const PUBLIC_COLUMNS =
+    "id, organization_id, make, model, variant, model_year, first_registration, mileage_km, " +
+    "price_dkk, monthly_price_dkk, fuel_type, transmission, body_type, color, doors, seats, " +
+    "power_hp, engine, battery_kwh, range_km, consumption, tax_period_dkk, registration_number, " +
+    "show_registration_number, description, equipment, badges, is_featured, seo_title, " +
+    "seo_description, slug, status, publish_at, sold_at, created_at, listing_type";
+  const { data, error } = await getSupabase()
+    .from("vehicles")
+    .select(
+      `${PUBLIC_COLUMNS}, vehicle_images(*), rental_details(price_per_day_dkk, price_per_week_dkk, price_per_month_dkk, deposit_dkk, included_km_per_day, extra_km_price_dkk, min_age, license_requirement, availability_status, pickup_location, insurance_info, extra_fees_text)`,
+    )
+    .eq("organization_id", orgId)
+    .eq("listing_type", "rental")
+    .in("status", ["published", "reserved"])
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rentalRow: any = Array.isArray(row.rental_details) ? row.rental_details[0] : row.rental_details;
+    return { ...mapRow(row), rentalDetails: rentalRow ? mapRentalDetails(rentalRow) : null };
+  });
+}
+
+const RENTAL_INVENTORY_KEY = ["vehicles", "public-rental-inventory"];
+
+export function useRentalInventory() {
+  return useQuery({ queryKey: RENTAL_INVENTORY_KEY, queryFn: fetchAllPublicRentalVehicles });
+}
+
+export function useRentalVehicle(slug: string | undefined) {
+  const inventory = useRentalInventory();
+  const vehicle = slug && inventory.data ? inventory.data.find((v) => v.slug === slug) : undefined;
+  return { ...inventory, vehicle };
 }
 
 export function useVehicles(filters: VehicleFilters, sort: SortKey = "newest") {

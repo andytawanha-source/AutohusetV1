@@ -16,6 +16,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { parse as parseHtml } from "npm:node-html-parser@6";
 import { handleOptions, jsonResponse } from "../_shared/cors.ts";
 
 const DEALER_URL = Deno.env.get("BILBASEN_DEALER_URL") ??
@@ -49,54 +50,84 @@ type ParsedListing = {
   modelYear: number | null;
   mileageKm: number | null;
   priceDkk: number | null;
+  description: string | null;
+  imageUrls: string[];
 };
 
+/** Bilbasens billed-CDN understøtter en størrelses-parameter i URL'en – vi beder om
+ * en større udgave end den lille thumbnail-størrelse siden selv linker til. */
+function upsizeImageUrl(url: string): string {
+  return url.replace(/class=RS\d+X\d+/, "class=RS960X720");
+}
+
 /**
- * Bilbasens forhandlerside er server-renderet HTML (ingen offentligt API), så vi
- * parser annonceblokkene med regex frem for en fuld DOM-parser (holder funktionen
- * let). Hvert "[Titel](/brugt/bil/.../<id>)"-link markerer en ny annonce; km, årgang
- * og pris står i de efterfølgende linjer/celler. Justér mønstrene her (markeret
- * TODO), hvis Bilbasen ændrer sidens opbygning.
+ * Bilbasens forhandlerside er server-renderet HTML (ingen offentligt API). Struktur
+ * verificeret direkte i browserens DOM (juli 2026):
+ *   a.listing-heading                     → titel + href ".../<make>/<model>/<variant>/<id>"
+ *   (nærmeste) .bb-listing-clickable       → hele annonce-kortet
+ *     .col-xs-6 .listing-data (4 stk.)     → [by, forbrug ("xx km/l"), km, årgang]
+ *     .listing-price                       → "57.499 kr."
+ *     .listing-description                 → fuld annoncetekst
+ *     img[src*="billeder.bilbasen.dk"]      → hovedbillede + små thumbnails
+ * Justér selectorerne her (markeret TODO), hvis Bilbasen ændrer sidens opbygning –
+ * check nemmest ved at inspicere DOM'en på forhandlersiden i browserens devtools.
  */
 function parseDealerPage(html: string): ParsedListing[] {
+  const root = parseHtml(html);
   const listings: ParsedListing[] = [];
 
-  // Matcher "<a href="/brugt/bil/<mærke>/<model>/<variant-slug>/<id>">Titel</a>"
-  const linkRe = /href="(\/brugt\/bil\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]+)\/(\d+))"[^>]*>\s*([^<]+?)\s*</gi;
-  const matches = [...html.matchAll(linkRe)];
+  const headings = root.querySelectorAll("a.listing-heading");
+  for (const heading of headings) {
+    const href = heading.getAttribute("href");
+    const title = heading.textContent.trim();
+    if (!href || !title) continue;
 
-  for (const m of matches) {
-    const [, path, makeSlug, modelSlug, , externalId, titleRaw] = m;
-    const title = titleRaw.trim();
-    if (!title || listings.some((l) => l.externalId === externalId)) continue;
+    const linkMatch = href.match(/^\/brugt\/bil\/([a-z0-9-]+)\/([a-z0-9-]+)\/[a-z0-9-]+\/(\d+)/i);
+    if (!linkMatch) continue;
+    const [, makeSlug, modelSlug, externalId] = linkMatch;
+    if (listings.some((l) => l.externalId === externalId)) continue;
 
-    // Søger km/årgang/pris i et vindue af tekst lige efter linket (samme rækkefølge
-    // som Bilbasen viser dem: "<km> · <km/l> · <årgang> · <pris> kr.").
-    const windowStart = m.index ?? 0;
-    const windowText = html.slice(windowStart, windowStart + 4000);
+    const card = heading.closest(".bb-listing-clickable") ?? heading.closest(".listing") ?? root;
 
-    const priceMatch = windowText.match(/([\d.]{4,10})\s*kr\.?/);
-    const yearMatch = windowText.match(/\b(19|20)\d{2}\b/);
-    const kmMatch = windowText.match(/\b([\d.]{2,8})\b(?!\s*kr)/g);
+    const dataCells = card.querySelectorAll(".listing-data").map((c) => c.textContent.trim());
+    // Rækkefølge på Bilbasen: [by, forbrug ("xx km/l"), km, årgang] – vi matcher på
+    // indhold frem for fast position, så det er robust over for en manglende celle.
+    const yearCell = dataCells.find((c) => /^(19|20)\d{2}$/.test(c));
+    const kmCell = dataCells.find((c) => /^[\d.]+$/.test(c) && c !== yearCell);
 
-    const priceDkk = priceMatch ? Number(priceMatch[1].replace(/\./g, "")) : null;
-    const modelYear = yearMatch ? Number(yearMatch[0]) : null;
-    // Kilometertal er typisk det første "rene" tal > 500 i vinduet (adskiller det fra
-    // dørantal, sædeantal osv., som også kan matche \d+ mønstre andre steder).
-    const mileageKm = kmMatch
-      ? (kmMatch.map((v) => Number(v.replace(/\./g, ""))).find((n) => n >= 500 && n < 900_000) ?? null)
-      : null;
+    const priceText = card.querySelector(".listing-price")?.textContent ?? "";
+    const priceMatch = priceText.match(/([\d.]{4,10})\s*kr/);
+
+    const description = card.querySelector(".listing-description")?.textContent.trim().replace(/\n{3,}/g, "\n\n") ?? null;
+
+    const imageUrls = card
+      .querySelectorAll("img")
+      .map((img) => img.getAttribute("src"))
+      .filter((src): src is string => Boolean(src) && src!.includes("billeder.bilbasen.dk"))
+      .map(upsizeImageUrl)
+      // Første billede går igen som både stort billede og lille thumbnail i DOM'en –
+      // fjern dubletter (samme fil-id, uanset størrelsesparameter).
+      .filter((src, i, arr) => arr.findIndex((s) => s.split("?")[0] === src.split("?")[0]) === i);
+
+    const make = titleCase(makeSlug.replace(/-/g, " "));
+    const model = titleCase(modelSlug.replace(/-/g, " "));
+    // Bilbasens titel er "<Mærke> <Model> <variant...>" – vi fjerner mærke+model fra
+    // starten (case-insensitivt) for at undgå at de gentages i variant-feltet.
+    const variant =
+      title.replace(new RegExp(`^${escapeRe(make)}\\s+${escapeRe(model)}\\s*`, "i"), "").trim() || null;
 
     listings.push({
       externalId,
-      externalUrl: `https://www.bilbasen.dk${path}`,
+      externalUrl: `https://www.bilbasen.dk${href}`,
       title,
-      make: titleCase(makeSlug.replace(/-/g, " ")),
-      model: titleCase(modelSlug.replace(/-/g, " ")),
-      variant: title.replace(new RegExp(`^${escapeRe(titleCase(makeSlug.replace(/-/g, " ")))}\\s+`, "i"), "") || null,
-      modelYear,
-      mileageKm,
-      priceDkk,
+      make,
+      model,
+      variant,
+      modelYear: yearCell ? Number(yearCell) : null,
+      mileageKm: kmCell ? Number(kmCell.replace(/\./g, "")) : null,
+      priceDkk: priceMatch ? Number(priceMatch[1].replace(/\./g, "")) : null,
+      description,
+      imageUrls,
     });
   }
 
@@ -152,6 +183,7 @@ Deno.serve(async (req) => {
         model_year: listing.modelYear,
         mileage_km: listing.mileageKm,
         price_dkk: listing.priceDkk,
+        description: listing.description,
         slug,
         // vehicle_status-enum har ikke "available" – "published" er den offentligt
         // synlige status (se 0001-migrationen).
@@ -162,12 +194,31 @@ Deno.serve(async (req) => {
         last_synced_at: new Date().toISOString(),
       };
 
+      let vehicleId = existing?.id as string | undefined;
       if (existing) {
         await supabase.from("vehicles").update(row).eq("id", existing.id);
         updated++;
       } else {
-        await supabase.from("vehicles").insert(row);
+        const { data: inserted } = await supabase.from("vehicles").insert(row).select("id").single();
+        vehicleId = inserted?.id;
         created++;
+      }
+
+      if (vehicleId && listing.imageUrls.length) {
+        // Simplest robuste tilgang: fjern gamle billeder for denne bil og indsæt de
+        // aktuelle igen – billed-URL'erne peger direkte på Bilbasens CDN, så der
+        // uploades intet til vores egen storage.
+        await supabase.from("vehicle_images").delete().eq("vehicle_id", vehicleId);
+        await supabase.from("vehicle_images").insert(
+          listing.imageUrls.map((url, i) => ({
+            organization_id: ORGANIZATION_ID,
+            vehicle_id: vehicleId,
+            storage_path: url,
+            alt_text: `${listing.make} ${listing.model}`,
+            sort_order: i,
+            is_primary: i === 0,
+          })),
+        );
       }
     }
 
