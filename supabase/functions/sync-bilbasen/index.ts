@@ -173,9 +173,12 @@ function parseDealerPage(html: string): ParsedListing[] {
 
     const description = card.querySelector(".listing-description")?.textContent.trim().replace(/\n{3,}/g, "\n\n") ?? null;
 
+    // Bilbasen lazy-loader (echo.js): "src" er en placeholder-ikon-SVG indtil billedet
+    // scroller i view – den rigtige URL ligger i "data-echo" (evt. "data-img" som
+    // fallback). Vi tjekker alle tre, i den rækkefølge.
     const imageUrls = card
       .querySelectorAll("img")
-      .map((img) => img.getAttribute("src"))
+      .map((img) => img.getAttribute("data-echo") ?? img.getAttribute("data-img") ?? img.getAttribute("src"))
       .filter((src): src is string => Boolean(src) && src!.includes("billeder.bilbasen.dk"))
       .map(upsizeImageUrl)
       // Første billede går igen som både stort billede og lille thumbnail i DOM'en –
