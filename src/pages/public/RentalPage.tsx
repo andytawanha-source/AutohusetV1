@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
 import { Car } from "lucide-react";
 import { Seo } from "@/components/seo/Seo";
 import { useBrand } from "@/app/BrandProvider";
 import { useRentalInventory } from "@/features/vehicles/api";
 
-const ONE2MOVE_URL = "https://one2movebiludlejning.dk/";
+// Autohuset Vests egen afdelingsside hos One2move – al booking foregår her.
+const ONE2MOVE_URL = "https://one2movebiludlejning.dk/afdelinger/biludlejning-roedovre-n";
 
 export default function RentalPage() {
   const brand = useBrand();
@@ -42,12 +42,14 @@ export default function RentalPage() {
         </p>
       )}
 
-      <div className="mx-auto mt-8 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-5">
         {cars?.map((car) => (
-          <Link
+          <a
             key={car.id}
-            to={`/biludlejning/${car.slug}`}
-            className="group flex flex-col items-center rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-brand-ink/5 transition-all hover:-translate-y-1 hover:shadow-lg"
+            href={ONE2MOVE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex w-full max-w-[280px] flex-col items-center rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-brand-ink/5 transition-all hover:-translate-y-1 hover:shadow-lg sm:w-[280px]"
           >
             <div className="flex h-20 w-full items-center justify-center rounded-lg bg-brand-surface-warm">
               <Car className="h-9 w-9 text-brand-accent" aria-hidden />
@@ -62,9 +64,9 @@ export default function RentalPage() {
                 : "Pris hos One2move"}
             </p>
             <span className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity group-hover:opacity-90">
-              Læs mere
+              Book hos One2move
             </span>
-          </Link>
+          </a>
         ))}
       </div>
 
