@@ -5,7 +5,7 @@ export function VehicleGrid({ vehicles }: { vehicles: Vehicle[] }) {
   return (
     <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {vehicles.map((v, i) => (
-        <li key={v.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
+        <li key={v.id} className="animate-fade-up h-full" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
           <VehicleCard vehicle={v} />
         </li>
       ))}

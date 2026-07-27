@@ -52,7 +52,69 @@ type ParsedListing = {
   priceDkk: number | null;
   description: string | null;
   imageUrls: string[];
+  fuelType: string | null;
+  transmission: string | null;
+  color: string | null;
+  bodyType: string | null;
+  doors: number | null;
+  powerHp: number | null;
+  taxPeriodDkk: number | null;
 };
+
+// Værdierne skal matche public.fuel_type / public.transmission_type-enummene.
+const FUEL_MAP: Record<string, string> = {
+  benzin: "benzin",
+  diesel: "diesel",
+  el: "el",
+  elektrisk: "el",
+  hybrid: "hybrid",
+  "plug-in hybrid": "plugin_hybrid",
+  "plug-in hybrid benzin": "plugin_hybrid",
+  "plug-in hybrid diesel": "plugin_hybrid",
+};
+const TRANSMISSION_MAP: Record<string, string> = {
+  manuel: "manuel",
+  automatisk: "automatisk",
+  automatgear: "automatisk",
+};
+
+/**
+ * Drivmiddel/geartype/farve/karrosseri findes IKKE på forhandler-listesiden – kun på
+ * den enkelte bils egen side. Struktur verificeret i browserens DOM (juli 2026):
+ *   table.bas-MuiTable-root (flere stk. på siden) → hver <tr> er [label, værdi]
+ *   Vi slår kun de mærker op, vi kender ("Drivmiddel", "Geartype", osv.) – de øvrige
+ *   tabeller (fx udstyrslisten) har label-tekster, der ikke matcher noget i KNOWN_SPECS,
+ *   og bliver derfor automatisk ignoreret.
+ */
+async function fetchListingSpecs(url: string): Promise<Partial<ParsedListing>> {
+  const res = await fetch(url, { headers: { "User-Agent": "AutohusetVestSync/1.0 (+https://autohusetvest.dk)" } });
+  if (!res.ok) return {};
+  const root = parseHtml(await res.text());
+
+  const specs = new Map<string, string>();
+  for (const table of root.querySelectorAll("table")) {
+    for (const row of table.querySelectorAll("tr")) {
+      const cells = row.querySelectorAll("th, td").map((c) => c.textContent.trim());
+      if (cells.length === 2) specs.set(cells[0], cells[1]);
+    }
+  }
+
+  const fuelRaw = specs.get("Drivmiddel")?.toLowerCase().trim();
+  const gearRaw = specs.get("Geartype")?.toLowerCase().trim();
+  const doorsRaw = specs.get("Døre");
+  const powerMatch = specs.get("Ydelse")?.match(/(\d+)\s*hk/i);
+  const taxMatch = specs.get("Periodisk afgift")?.match(/([\d.]+)\s*kr/);
+
+  return {
+    fuelType: fuelRaw ? FUEL_MAP[fuelRaw] ?? null : null,
+    transmission: gearRaw ? TRANSMISSION_MAP[gearRaw] ?? null : null,
+    color: specs.get("Farve") ?? null,
+    bodyType: specs.get("Type") ?? specs.get("Kategori") ?? null,
+    doors: doorsRaw ? Number(doorsRaw) : null,
+    powerHp: powerMatch ? Number(powerMatch[1]) : null,
+    taxPeriodDkk: taxMatch ? Number(taxMatch[1].replace(/\./g, "")) : null,
+  };
+}
 
 /** Bilbasens billed-CDN understøtter en størrelses-parameter i URL'en – vi beder om
  * en større udgave end den lille thumbnail-størrelse siden selv linker til. */
@@ -128,6 +190,13 @@ function parseDealerPage(html: string): ParsedListing[] {
       priceDkk: priceMatch ? Number(priceMatch[1].replace(/\./g, "")) : null,
       description,
       imageUrls,
+      fuelType: null,
+      transmission: null,
+      color: null,
+      bodyType: null,
+      doors: null,
+      powerHp: null,
+      taxPeriodDkk: null,
     });
   }
 
@@ -165,6 +234,15 @@ Deno.serve(async (req) => {
     let updated = 0;
 
     for (const listing of listings) {
+      // Ekstra opslag pr. bil for drivmiddel/gearkasse/farve/karrosseri – findes kun
+      // på den enkelte annonces egen side. Fejler roligt (specs forbliver tomme)
+      // frem for at vælte hele synkroniseringen, hvis én annonce driller.
+      try {
+        Object.assign(listing, await fetchListingSpecs(listing.externalUrl));
+      } catch {
+        // ignoreres bevidst
+      }
+
       const slug = `${slugify(listing.title)}-${listing.externalId}`;
       const { data: existing } = await supabase
         .from("vehicles")
@@ -184,6 +262,13 @@ Deno.serve(async (req) => {
         mileage_km: listing.mileageKm,
         price_dkk: listing.priceDkk,
         description: listing.description,
+        fuel_type: listing.fuelType,
+        transmission: listing.transmission,
+        color: listing.color,
+        body_type: listing.bodyType,
+        doors: listing.doors,
+        power_hp: listing.powerHp,
+        tax_period_dkk: listing.taxPeriodDkk,
         slug,
         // vehicle_status-enum har ikke "available" – "published" er den offentligt
         // synlige status (se 0001-migrationen).

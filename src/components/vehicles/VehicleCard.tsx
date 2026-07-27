@@ -20,7 +20,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-brand-ink/5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg motion-reduce:transform-none",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-brand-ink/5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg motion-reduce:transform-none",
         isSold && "opacity-80"
       )}
     >
@@ -43,8 +43,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <FavoriteButton vehicleId={vehicle.id} className="absolute right-3 top-3 z-10" />
       </div>
 
-      <div className="p-4">
-        <h3 className="font-display text-lg font-semibold leading-snug text-brand-ink">
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 min-h-[2.75rem] font-display text-lg font-semibold leading-snug text-brand-ink">
           <Link
             to={`/biler/${vehicle.slug}`}
             className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
@@ -84,7 +84,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           )}
         </dl>
 
-        <div className="mt-4 flex items-end justify-between border-t border-brand-ink/10 pt-3">
+        <div className="mt-auto flex items-end justify-between border-t border-brand-ink/10 pt-3">
           <div>
             {vehicle.priceDkk !== null && (
               <p className="font-display text-xl font-bold text-brand-primary">
