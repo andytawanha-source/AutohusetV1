@@ -78,16 +78,27 @@ const TRANSMISSION_MAP: Record<string, string> = {
   automatgear: "automatisk",
 };
 
+const SCRAPERAPI_KEY = Deno.env.get("SCRAPERAPI_KEY") ?? "";
+
 /**
  * Drivmiddel/geartype/farve/karrosseri findes IKKE på forhandler-listesiden – kun på
- * den enkelte bils egen side. Struktur verificeret i browserens DOM (juli 2026):
+ * den enkelte bils egen side, som er en React-app beskyttet af Cloudflare (Turnstile).
+ * Et almindeligt server-til-server fetch() bliver mødt med en JS-udfordring i stedet
+ * for indholdet. Vi ruter derfor opslaget gennem ScraperAPI (render=true løser
+ * udfordringen og JS-renderer siden), hvis SCRAPERAPI_KEY-secret er sat – ellers
+ * springes det stille over (resten af synkroniseringen fungerer uden det).
+ *
+ * Struktur verificeret i browserens DOM (juli 2026):
  *   table.bas-MuiTable-root (flere stk. på siden) → hver <tr> er [label, værdi]
  *   Vi slår kun de mærker op, vi kender ("Drivmiddel", "Geartype", osv.) – de øvrige
  *   tabeller (fx udstyrslisten) har label-tekster, der ikke matcher noget i KNOWN_SPECS,
  *   og bliver derfor automatisk ignoreret.
  */
 async function fetchListingSpecs(url: string): Promise<Partial<ParsedListing>> {
-  const res = await fetch(url, { headers: { "User-Agent": "AutohusetVestSync/1.0 (+https://autohusetvest.dk)" } });
+  if (!SCRAPERAPI_KEY) return {};
+  const proxied =
+    `https://api.scraperapi.com/?api_key=${SCRAPERAPI_KEY}&url=${encodeURIComponent(url)}&render=true&country_code=dk`;
+  const res = await fetch(proxied);
   if (!res.ok) return {};
   const root = parseHtml(await res.text());
 
@@ -234,23 +245,26 @@ Deno.serve(async (req) => {
     let updated = 0;
 
     for (const listing of listings) {
-      // Ekstra opslag pr. bil for drivmiddel/gearkasse/farve/karrosseri – findes kun
-      // på den enkelte annonces egen side. Fejler roligt (specs forbliver tomme)
-      // frem for at vælte hele synkroniseringen, hvis én annonce driller.
-      try {
-        Object.assign(listing, await fetchListingSpecs(listing.externalUrl));
-      } catch {
-        // ignoreres bevidst
-      }
-
       const slug = `${slugify(listing.title)}-${listing.externalId}`;
       const { data: existing } = await supabase
         .from("vehicles")
-        .select("id")
+        .select("id, fuel_type")
         .eq("organization_id", ORGANIZATION_ID)
         .eq("external_source", "bilbasen")
         .eq("external_id", listing.externalId)
         .maybeSingle();
+
+      // Ekstra (kreditforbrugende) opslag pr. bil for drivmiddel/gearkasse/farve/
+      // karrosseri – kun for biler der endnu ikke har det, så vi ikke bruger
+      // ScraperAPI-kreditter på biler, der allerede er beriget. Fejler roligt
+      // (specs forbliver tomme) frem for at vælte hele synkroniseringen.
+      if (!existing?.fuel_type) {
+        try {
+          Object.assign(listing, await fetchListingSpecs(listing.externalUrl));
+        } catch {
+          // ignoreres bevidst
+        }
+      }
 
       const row = {
         organization_id: ORGANIZATION_ID,
