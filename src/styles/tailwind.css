@@ -1,87 +1,3 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Brandvariabler sættes af BrandProvider (inline på <html>). Defaults = Autohuset Vest (kongeblå/hvid). */
-:root {
-  --brand-primary: 32 56 176;
-  --brand-secondary: 22 39 125;
-  --brand-accent: 143 176 255;
-  --brand-surface: 255 255 255;
-  --brand-surface-warm: 238 242 251;
-  --brand-ink: 14 21 51;
-  --font-display: "Outfit";
-  --font-body: "Inter";
-}
-
-@layer base {
-  html {
-    scroll-behavior: smooth;
-    /* Forhindrer at siden kan skubbes/trækkes sidelæns, hvis et enkelt element
-       skulle overflowe på mobil (fx en for bred tabel eller badge). */
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  #root {
-    overflow-x: clip;
-  }
-
-  /* CSS Grid giver som udgangspunkt hvert grid-element en automatisk minimumsbredde
-     svarende til dets indhold. Hvis et grid-element indeholder en intern vandret
-     scroll-liste (fx trin-indikatoren i booking-formularen), presser det derfor hele
-     grid-elementet – og alt omkring det – bredere end skærmen på mobil. Dette nulstiller
-     minimumsbredden, så indhold i stedet ombrydes eller scroller internt som tiltænkt. */
-  .grid > * {
-    min-width: 0;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-
-  body {
-    @apply bg-brand-surface font-body text-brand-ink antialiased;
-  }
-
-  h1, h2, h3, h4 {
-    @apply font-display;
-  }
-
-  img, video, iframe, svg, canvas {
-    max-width: 100%;
-  }
-
-  /* Sikrer at lange, ubrudte ord/URL'er ikke tvinger indholdet bredere end skærmen. */
-  p, h1, h2, h3, h4, span, a {
-    overflow-wrap: break-word;
-  }
-
-  :focus-visible {
-    @apply outline-none ring-2 ring-brand-accent ring-offset-2 ring-offset-brand-surface;
-  }
-}
-
-@layer components {
-  .skeleton {
-    @apply relative overflow-hidden rounded-md bg-brand-ink/10;
-  }
-  .skeleton::after
-@'
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -119,8 +35,8 @@
   /* CSS Grid giver som udgangspunkt hvert grid-element en automatisk minimumsbredde
      svarende til dets indhold. Hvis et grid-element indeholder en intern vandret
      scroll-liste (fx trin-indikatoren i booking-formularen), presser det derfor hele
-     grid-elementet – og alt omkring det – bredere end skærmen på mobil. Dette nulstiller
-     minimumsbredden, så indhold i stedet ombrydes eller scroller internt som tiltænkt. */
+     grid-elementet og alt omkring det bredere end skaermen paa mobil. Dette nulstiller
+     minimumsbredden, saa indhold i stedet ombrydes eller scroller internt som tiltaenkt. */
   .grid > * {
     min-width: 0;
   }
