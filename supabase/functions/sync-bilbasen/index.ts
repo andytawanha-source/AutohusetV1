@@ -251,7 +251,7 @@ Deno.serve(async (req) => {
       const slug = `${slugify(listing.title)}-${listing.externalId}`;
       const { data: existing } = await supabase
         .from("vehicles")
-        .select("id, fuel_type")
+        .select("id, fuel_type, transmission, color, body_type, doors, power_hp, tax_period_dkk")
         .eq("organization_id", ORGANIZATION_ID)
         .eq("external_source", "bilbasen")
         .eq("external_id", listing.externalId)
@@ -269,6 +269,9 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Når specs IKKE hentes på ny (bilen har dem allerede), skal de allerede
+      // gemte værdier bevares i stedet for at blive overskrevet med null – ellers
+      // sletter en almindelig sync (uden ScraperAPI-opslag) tidligere hentede data.
       const row = {
         organization_id: ORGANIZATION_ID,
         listing_type: "sale",
@@ -279,13 +282,13 @@ Deno.serve(async (req) => {
         mileage_km: listing.mileageKm,
         price_dkk: listing.priceDkk,
         description: listing.description,
-        fuel_type: listing.fuelType,
-        transmission: listing.transmission,
-        color: listing.color,
-        body_type: listing.bodyType,
-        doors: listing.doors,
-        power_hp: listing.powerHp,
-        tax_period_dkk: listing.taxPeriodDkk,
+        fuel_type: listing.fuelType ?? existing?.fuel_type ?? null,
+        transmission: listing.transmission ?? existing?.transmission ?? null,
+        color: listing.color ?? existing?.color ?? null,
+        body_type: listing.bodyType ?? existing?.body_type ?? null,
+        doors: listing.doors ?? existing?.doors ?? null,
+        power_hp: listing.powerHp ?? existing?.power_hp ?? null,
+        tax_period_dkk: listing.taxPeriodDkk ?? existing?.tax_period_dkk ?? null,
         slug,
         // vehicle_status-enum har ikke "available" – "published" er den offentligt
         // synlige status (se 0001-migrationen).

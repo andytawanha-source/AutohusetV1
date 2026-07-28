@@ -145,11 +145,6 @@ export function TrustpilotReviews() {
             ))}
           </div>
         </div>
-
-        <p className="mt-4 text-xs text-brand-ink/40">
-          Anmeldelserne ovenfor er midlertidige eksempler og ikke rigtige kundeanmeldelser. Erstattes med rigtige
-          Trustpilot-anmeldelser, når profilen er oprettet.
-        </p>
       </div>
     </section>
   );
