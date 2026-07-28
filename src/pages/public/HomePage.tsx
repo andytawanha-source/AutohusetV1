@@ -160,7 +160,7 @@ export default function HomePage() {
 
       {/* Om + lokation */}
       <section className="bg-brand-gradient py-14 text-white" aria-labelledby="about-heading">
-        <div className="container grid gap-8 lg:grid-cols-2">
+        <div className="container grid gap-8 lg:grid-cols-2 lg:items-start">
           <div>
             <h2 id="about-heading" className="font-display text-2xl font-bold lg:text-3xl">Om {brand.name}</h2>
             <p className="mt-3 leading-relaxed text-white/75">
@@ -178,17 +178,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="space-y-4">
-            <img
-              src={media.showroom.src}
-              width={media.showroom.width}
-              height={media.showroom.height}
-              alt={media.showroom.alt}
-              loading="lazy"
-              decoding="async"
-              className="aspect-[3/2] w-full rounded-2xl object-cover ring-1 ring-white/10"
-            />
-            <p className="-mt-2 text-xs text-white/40">Illustrativt foto</p>
+          <div>
             <div className="rounded-xl bg-white/5 p-6 ring-1 ring-white/10">
               <h3 className="flex items-center gap-2 font-display text-lg font-bold">
                 <MapPin className="h-5 w-5 text-brand-accent" aria-hidden /> Find os
