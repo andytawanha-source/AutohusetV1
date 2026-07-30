@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, Phone, X } from "lucide-react";
 import { useBrand } from "@/app/BrandProvider";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 
-const NAV_ITEMS = [
+type NavItem = { to: string; label: string; end?: boolean };
+
+const BASE_NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Forside", end: true },
   { to: "/biler", label: "Biler til salg" },
   { to: "/saelg-din-bil", label: "Sælg din bil" },
@@ -19,6 +21,16 @@ export function SiteHeader() {
   const brand = useBrand();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // "Bilpleje" vises kun for brands, der har en bilplejeUrl sat i deres
+  // brandkonfiguration, og indsættes efter "Garanti".
+  const navItems = useMemo<NavItem[]>(() => {
+    if (!brand.bilplejeUrl) return BASE_NAV_ITEMS;
+    const items = [...BASE_NAV_ITEMS];
+    const garantiIndex = items.findIndex((item) => item.to === "/garanti");
+    items.splice(garantiIndex + 1, 0, { to: "/bilpleje", label: "Bilpleje" });
+    return items;
+  }, [brand.bilplejeUrl]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -48,7 +60,7 @@ export function SiteHeader() {
         </Link>
 
         <nav aria-label="Hovednavigation" className="hidden items-center gap-1 lg:flex">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -96,7 +108,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav id="mobile-menu" aria-label="Mobilnavigation" className="border-t border-white/10 bg-brand-gradient lg:hidden">
           <ul className="container flex flex-col py-2">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <li key={item.to}>
                 <NavLink
                   to={item.to}

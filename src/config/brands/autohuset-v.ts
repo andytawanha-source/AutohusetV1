@@ -46,4 +46,6 @@ export const autohusetV: BrandConfig = {
   },
   leadResponseTime: "inden for 24 timer på hverdage",
   leadReferencePrefix: "AV",
+  // Samme fysiske bilpleje-anlæg og Planway-booking som Autohuset Vest (fælles lokation).
+  bilplejeUrl: "https://autohusetvest-bilpleje.planway.com?d=68403&sid=491895",
 };

@@ -46,4 +46,6 @@ export interface BrandConfig {
   leadResponseTime: string;
   /** Præfiks til leadreferencer, fx "AVEST" */
   leadReferencePrefix: string;
+  /** Booking-URL til bilpleje/bilvask (Planway el. lign.). Udeladt = ingen "Bilpleje"-link i header. */
+  bilplejeUrl?: string;
 }
